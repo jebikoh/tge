@@ -27,9 +27,10 @@ def _write(m: str):
 
 
 class Display:
-    def __init__(self, width: int = 25, height: int = 25):
+    def __init__(self, width: int = 25, height: int = 25, hspace: int = 2):
         self.width = width
         self.height = height
+        self.hspace = hspace
         self.buf = np.full((height, width), "@", dtype="<U1")
         self.start_row, self.start_col = self._calculate_start_pos()
         signal.signal(signal.SIGWINCH, self._handle_resize)
@@ -37,16 +38,16 @@ class Display:
     def _calculate_start_pos(self):
         w, h = _get_terminal_size()
         start_row = max((h - self.height) // 2, 0)
-        start_column = max((w - self.width) // 2, 0)
+        start_column = max((w - self.width * self.hspace) // 2, 0)
         return start_row, start_column
 
     def _buf_to_fb(self):
-        return CLEAR + "\n".join(
-            [
-                f"\033[{self.start_row + i};{self.start_col}H{''.join(line)}"
-                for i, line in enumerate(self.buf)
-            ]
-        )
+        spaces = ["".join(char * self.hspace for char in line) for line in self.buf]
+        fbuf = [
+            f"\033[{self.start_row + i};{self.start_col}H{line}"
+            for i, line in enumerate(spaces)
+        ]
+        return CLEAR + "\n".join(fbuf)
 
     def _handle_resize(self, signum, frame):
         self.start_row, self.start_col = self._calculate_start_pos()
