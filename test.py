@@ -1,22 +1,33 @@
-from engine import GraphicsEngine
-from model import load_model
-from util import build_scale
-import time
+from util import Vec3
+from scene import Camera, Projection
+import numpy as np
 
 
-def main():
-    e = GraphicsEngine((50, 30))
-    cube = load_model("models/cube.obj")
-    print(cube.v)
+def test_view_matrix():
+    camera_position = Vec3(0, 0, 5)
+    camera_direction = Vec3(0, 0, -1)  # Looking towards the origin
+    camera_up = Vec3(0, 1, 0)
 
-    m_id = e.add_model(cube)
-    start = time.time()
-    e.transform_model(m_id, build_scale(2, 2, 2))
-    end = time.time()
+    camera = Camera(
+        camera_position, camera_direction, camera_up, fov=60, near=0.1, far=1000
+    )
+    view_matrix = camera.get_view_matrix()
 
-    print(e.models[m_id].v)
-    print(f"Time taken: {end - start}")
+    assert not np.array_equal(view_matrix, np.identity(4))
+
+
+def test_projection_matrix():
+    aspect_ratio = 16 / 9
+    camera = Camera(
+        Vec3(0, 0, 5), Vec3(0, 0, -1), Vec3(0, 1, 0), fov=60, near=0.1, far=1000
+    )
+
+    proj_matrix = camera.get_proj_matrix(aspect_ratio, Projection.PERSPECTIVE)
+
+    assert not np.array_equal(proj_matrix, np.identity(4))
 
 
 if __name__ == "__main__":
-    main()
+    test_view_matrix()
+    test_projection_matrix()
+    print("Tests passed!")
