@@ -2,9 +2,25 @@ import numpy as np
 from enum import Enum
 
 
+def _normalize(v: np.ndarray):
+    """Normalize a vector
+
+    Args:
+        v (np.ndarray): Vector to normalize
+
+    Returns:
+        np.ndarray: Normalized vector
+    """
+    return v / np.linalg.norm(v)
+
+
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
         self.v = np.array([x, y, z])
+
+    def normalize(self):
+        """Normalize the vector"""
+        self.v = _normalize(self.v)
 
 
 class Vec4:
