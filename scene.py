@@ -18,3 +18,12 @@ class SpotLight:
         self.pos = position
         self.dir = direction
         self.angle = angle
+
+
+# Camera
+class Camera:
+    def __init__(self, position: Vec3, direction: Vec3, up: Vec3, fov: float):
+        self.pos = position
+        self.dir = direction
+        self.up = up
+        self.fov = fov
