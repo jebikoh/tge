@@ -23,3 +23,8 @@ class GraphicsEngine:
 
     def remove_model(self, index: int):
         self.models.pop(index)
+
+    def transform_model(self, m_id: int, t: np.ndarray):
+        if t.shape != (4, 4):
+            raise ValueError("Transformation matrix must be 4x4")
+        self.models[m_id].apply_transform(t)
