@@ -1,7 +1,8 @@
+from typing import List
 import numpy as np
 from display import Display
-from model import Model
-from scene import Camera
+from model import Model, apply_transform
+from scene import Camera, Projection
 
 
 class GraphicsEngine:
@@ -13,6 +14,7 @@ class GraphicsEngine:
             ups (int, optional): Display updates per second. Defaults to 60.
         """
         self.display = Display(resolution[0], resolution[1])
+        self.aspect_ratio = resolution[0] / resolution[1]
         self.ups = ups
         self.models = []
         self.lights = []
@@ -37,19 +39,20 @@ class GraphicsEngine:
     def remove_camera(self, id: int):
         self.camera.pop(id)
 
-    def render(self):
-        pass
-
-    def _apply_view_transform(self, camera_id: int):
-        """Apply the view transform to all models
+    def render(self, camera_id: int, proj_type: Projection = Projection.PERSPECTIVE):
+        """Render the scene
 
         Args:
-            camera_id (int): ID of the camera to use
-
-        Returns:
-            List[np.ndarray]: List of transformed models
+            camera_id (int): ID of the camera to use for rendering
+            proj_type (Projection, optional): Type of projection to use. Defaults to Projection.PERSPECTIVE.
         """
-        out = []
+        clip = []
+        camera = self.camera[camera_id]
+        view_matrix = camera.get_view_matrix()
+        proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
+        t = proj_matrix @ view_matrix
+
         for model in self.models:
-            out.append(model.apply_transform(self.camera[camera_id].get_view_matrix()))
-        return out
+            m = apply_transform(model, t)
+            m.v = m.v / m.v[:, 3]
+            clip.append(m)

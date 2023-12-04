@@ -36,6 +36,25 @@ class Model:
         self.v = self.v + translation
 
 
+def apply_transform(model: Model, transformation: np.ndarray) -> Model:
+    """Apply a transformation to a model
+
+    Args:
+        model (Model): Model to transform
+        transformation (np.ndarray): 4x4 transformation matrix
+
+    Raises:
+        ValueError: If transformation matrix is not 4x4
+
+    Returns:
+        Model: Transformed model
+    """
+    if transformation.shape != (4, 4):
+        raise ValueError("Transformation matrix must be 4x4")
+
+    return Model(model.v @ transformation.T, model.f.copy())
+
+
 def load_model(path: str) -> Model:
     """Load a model from a .obj file
 

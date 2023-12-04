@@ -134,7 +134,6 @@ def build_scale(s_x: float, s_y: float, s_z: float):
 
 def condense_transformations(transforms: list[np.ndarray]):
     """Condenses a list of transformations into a single transformation matrix.
-    Array order should mimic the order of operations (from left to right).
 
     Note, this method is not particularly efficient for large lists of transformations.
 
