@@ -2,4 +2,4 @@
 
 Set up with `poetry install`
 
-Entere shell before running: `poetry shell`
+Enter shell before running: `poetry shell`

@@ -1,8 +1,9 @@
+import re
 import numpy as np
 from enum import Enum
 
 
-def _normalize(v: np.ndarray):
+def normalize(v: np.ndarray):
     """Normalize a vector
 
     Args:
@@ -18,9 +19,18 @@ class Vec3:
     def __init__(self, x: float, y: float, z: float):
         self.v = np.array([x, y, z])
 
+    def __add__(self, other):
+        v = self.v + other.v
+        return Vec3(v[0], v[1], v[2])
+
+    def __sub__(self, other):
+        v = self.v - other.v
+        return Vec3(v[0], v[1], v[2])
+
     def normalize(self):
         """Normalize the vector"""
-        self.v = _normalize(self.v)
+        self.v = normalize(self.v)
+        return self
 
 
 class Vec4:

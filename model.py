@@ -1,12 +1,22 @@
 import numpy as np
 
 
+def _compute_normals(v: np.ndarray, f: np.ndarray):
+    norms = []
+    for face in f:
+        v0, v1, v2 = v[face]
+        norms.append(np.cross(v1 - v0, v2 - v0))
+    return np.array(norms)
+
+
 class Model:
     """Class representing a 3D model. Defined by vertices and faces."""
 
     def __init__(self, vertices: np.ndarray, faces: np.ndarray):
         self.v = vertices
         self.f = faces
+
+        self.n = _compute_normals(self.v, self.f)
 
     def apply_transform(self, transformation: np.ndarray):
         """Apply a transformation to the model
@@ -36,12 +46,12 @@ class Model:
         self.v = self.v + translation
 
 
-def apply_transform(model: Model, transformation: np.ndarray) -> Model:
+def apply_transform(model: Model, t: np.ndarray) -> Model:
     """Apply a transformation to a model
 
     Args:
         model (Model): Model to transform
-        transformation (np.ndarray): 4x4 transformation matrix
+        t (np.ndarray): 4x4 transformation matrix
 
     Raises:
         ValueError: If transformation matrix is not 4x4
@@ -49,10 +59,10 @@ def apply_transform(model: Model, transformation: np.ndarray) -> Model:
     Returns:
         Model: Transformed model
     """
-    if transformation.shape != (4, 4):
+    if t.shape != (4, 4):
         raise ValueError("Transformation matrix must be 4x4")
 
-    return Model(model.v @ transformation.T, model.f.copy())
+    return Model(model.v @ t, model.f.copy())
 
 
 def load_model(path: str) -> Model:

@@ -1,5 +1,5 @@
 import numpy as np
-from util import Vec3, _normalize
+from util import Vec3, normalize
 from enum import Enum
 
 
@@ -41,7 +41,7 @@ class Camera:
 
         Args:
             position (Vec3): Position of the camera
-            direction (Vec3): Direction the camera is facing
+            direction (Vec3): Position the camera is looking at
             up (Vec3): Up vector of the camera
             fov (float): Field of view of the camera (radians)
             near (float): Near plane of the camera (distance)
@@ -49,7 +49,7 @@ class Camera:
         """
         self.pos = position
 
-        self.dir = direction
+        self.dir = direction - self.pos
         self.dir.normalize()
 
         self.up = up
@@ -65,18 +65,18 @@ class Camera:
         Returns:
             np.ndarray: View matrix (4x4)
         """
-        right = _normalize(np.cross(self.up.v, self.dir.v))
-        adj_up = np.cross(right, self.dir.v)
+        s = normalize(np.cross(self.dir.v, self.up.v))
+        u = normalize(np.cross(s, self.dir.v))
 
         return np.array(
             [
-                [right[0], right[1], right[2], -np.dot(right, self.pos.v)],
-                [adj_up[0], adj_up[1], adj_up[2], -np.dot(adj_up, self.pos.v)],
+                [s[0], s[1], s[2], -np.dot(s, self.pos.v)],
+                [u[0], u[1], u[2], -np.dot(u, self.pos.v)],
                 [
-                    self.dir.v[0],
-                    self.dir.v[1],
-                    self.dir.v[2],
-                    -np.dot(self.dir.v, self.pos.v),
+                    -self.dir.v[0],
+                    -self.dir.v[1],
+                    -self.dir.v[2],
+                    np.dot(self.dir.v, self.pos.v),
                 ],
                 [0, 0, 0, 1],
             ]
