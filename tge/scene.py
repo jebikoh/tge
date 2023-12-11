@@ -96,9 +96,8 @@ class Camera:
         Returns:
             (np.ndarray): Projection matrix (4x4)
         """
+        f = 1 / np.tan(self.fov / 2)
         if proj_type == Projection.PERSPECTIVE:
-            f = 1 / np.tan(self.fov / 2)
-
             return np.array(
                 [
                     [f / aspect_ratio, 0, 0, 0],

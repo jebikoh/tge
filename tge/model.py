@@ -43,7 +43,7 @@ class Model:
         """
         norms = []
         for face in self.f:
-            v0, v1, v2 = self.v[face]
+            v0, v1, v2 = (self.v[:, :-1])[face]
             norms.append(np.cross(v1 - v0, v2 - v0))
         return np.array(norms)
 
@@ -64,7 +64,7 @@ def apply_transform(model: Model, t: np.ndarray) -> Model:
     if t.shape != (4, 4):
         raise ValueError("Transformation matrix must be 4x4")
 
-    return Model(model.v @ t, model.f.copy())
+    return Model(model.v @ t.T, model.f.copy())
 
 
 def load_model(path: str) -> Model:

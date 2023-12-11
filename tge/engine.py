@@ -2,6 +2,10 @@ import numpy as np
 from .display import Display
 from .model import Model, apply_transform
 from .scene import Camera, Projection
+from .util import Vec3
+from .debug import plot_scatter, plot_scene
+
+ORIGIN = Vec3(0, 0, 0)
 
 
 class GraphicsEngine:
@@ -101,32 +105,35 @@ class GraphicsEngine:
         proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
         t = proj_matrix @ view_matrix
         if debug:
-            print("View Matrix:")
-            print(view_matrix)
-            print("Projection Matrix:")
-            print(proj_matrix)
-            print("Transform Matrix:")
-            print(t)
+            print("View Matrix:\n" + str(view_matrix))
+            print("Projection Matrix:\n" + str(proj_matrix))
+            print("Transform Matrix:\n" + str(t))
 
         for model in self.models:
             m = apply_transform(model, t)
+            if debug:
+                # Origin mdodel
+                plot_scene(model, camera.pos)
+                print("Transformed model:\n" + str(m.v))
+                plot_scene(m, ORIGIN)
+
             # Skipping clipping for now; add later if needed
             # Perspective Division
-            m.v = (m.v / m.v[:, 3].reshape(-1, 1))[:, :-1]
+            m.v = m.v / m.v[:, 3].reshape(-1, 1)
             if debug:
-                print("NDC:")
-                print(m.v)
+                print("NDC:\n" + str(m.v))
+                plot_scene(m, ORIGIN)
+
             # Convert NDC to screen (in-place)
             self._ndc_to_screen(m)
             models.append(m)
             if debug:
-                print("Screen space:")
+                print("Screen space:\n" + str(m.v))
                 print(m.v)
-
             # Rasterization
+            norms = m.compute_normals()
             for i, face in enumerate(m.f):
-                view = camera.pos.v - m.v[face[0]]
-                norms = m.compute_normals()
+                view = camera.pos.v - (m.v[face[0]])[:-1]
                 # Back-face culling
                 if np.dot(norms[i], view) > 0:
                     if debug:
