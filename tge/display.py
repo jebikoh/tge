@@ -27,7 +27,16 @@ def _write(m: str):
 
 
 class Display:
+    """Display class for rendering a character-based buffer to the terminal"""
+
     def __init__(self, width: int = 25, height: int = 25, hspace: int = 2):
+        """Initialize the display
+
+        Args:
+            width (int, optional): width of display. Defaults to 25.
+            height (int, optional): height of display. Defaults to 25.
+            hspace (int, optional): space between dispaly rows. Defaults to 2.
+        """
         self.width = width
         self.height = height
         self.hspace = hspace
@@ -52,11 +61,24 @@ class Display:
     def _handle_resize(self, signum, frame):
         self.start_row, self.start_col = self._calculate_start_pos()
 
-    def update_buffer(self, new_content):
+    def update_buffer(self, new_buf: np.ndarray):
+        """Update the buffer with new content
+
+        Args:
+            new_buf (np.ndarray): new buffer
+
+        Raises:
+            ValueError: if the shape of new_buf does not match the shape of the current buffer
+        """
+        if new_buf.shape != self.buf.shape:
+            raise ValueError(
+                f"New content shape {new_buf.shape} does not match buffer shape {self.buf.shape}"
+            )
         # Add logic here to update self.buf with new_content
         pass
 
     def render(self):
+        """Render the buffer to the terminal"""
         fbuf = self._buf_to_fb()
         _write(fbuf)
         _flush()
