@@ -1,6 +1,5 @@
 # Terminal Graphics Engine
 
-Set up with `poetry install`. Enter shell before running anything: `poetry shell`.
+Set up with `poetry install` and active the environment with `poetry shell`.
 
-Build the docs with the following: `mkdocs build`
-You can also serve it with: `mkdocs serve`
+Build the docs with `mkdocs build` or serve it with `mkdocs serve`.
