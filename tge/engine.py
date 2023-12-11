@@ -99,7 +99,7 @@ class GraphicsEngine:
             camera_id (int): ID of the camera to use for rendering
             proj_type (Projection, optional): Type of projection to use. Defaults to Projection.PERSPECTIVE.
         """
-        models = []
+        buf = self.display.build_empty_buffer()
         camera = self.camera[camera_id]
         view_matrix = camera.get_view_matrix()
         proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
@@ -127,7 +127,8 @@ class GraphicsEngine:
 
             # Convert NDC to screen (in-place)
             self._ndc_to_screen(m)
-            models.append(m)
+            m.round_vertices()
+
             if debug:
                 print("Screen space:\n" + str(m.v))
             # Rasterization
@@ -135,10 +136,17 @@ class GraphicsEngine:
             for i, face in enumerate(m.f):
                 view = camera.pos.v - (m.v[face[0]])[:-1]
                 # Back-face culling
-                if np.dot(norms[i], view) > 0:
-                    if debug:
-                        print(f"Culled face {i}")
-                    continue
+                # if np.dot(norms[i], view) > 0:
+                #     if debug:
+                #         print(f"Culled face {i}")
+                #     continue
+                v0, v1, v2 = m.v[face]
+                _bresenhams_line(v0[0], v1[0], v0[1], v1[1], buf)
+                _bresenhams_line(v1[0], v2[0], v1[1], v2[1], buf)
+                _bresenhams_line(v2[0], v0[0], v2[1], v0[1], buf)
+                if debug:
+                    self.display.update_buffer(buf)
+                    self.display.render()
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
         """Converts a model with points in NDC to screen coordinates (in-place)
@@ -154,3 +162,34 @@ class GraphicsEngine:
             screen_v[:, 1] = self.display.height - screen_v[:, 1]
 
         m.v = screen_v
+
+
+def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, buf: np.ndarray):
+    h, w = buf.shape
+
+    points = []
+    dx = abs(x1 - x0)
+    sx = 1 if x0 < x1 else -1
+    dy = -abs(y1 - y0)
+    sy = 1 if y0 < y1 else -1
+
+    e = dx + dy
+
+    points = []
+    while True:
+        if 0 <= x0 < w and 0 <= y0 < h:
+            buf[y0, x0] = "@"
+        points.append((x0, y0))
+
+        if x0 == x1 and y0 == y1:
+            break
+
+        e2 = 2 * e
+        if e2 >= dy:
+            e += dy
+            x0 += sx
+        if e2 <= dx:
+            e += dx
+            y0 += sy
+
+    # print(points)

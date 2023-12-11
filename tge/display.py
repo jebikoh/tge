@@ -61,6 +61,10 @@ class Display:
     def _handle_resize(self, signum, frame):
         self.start_row, self.start_col = self._calculate_start_pos()
 
+    def build_empty_buffer(self):
+        """Build an empty buffer"""
+        return np.full((self.height, self.width), " ", dtype="<U1")
+
     def update_buffer(self, new_buf: np.ndarray):
         """Update the buffer with new content
 
@@ -75,7 +79,7 @@ class Display:
                 f"New content shape {new_buf.shape} does not match buffer shape {self.buf.shape}"
             )
         # Add logic here to update self.buf with new_content
-        pass
+        self.buf = new_buf
 
     def render(self):
         """Render the buffer to the terminal"""

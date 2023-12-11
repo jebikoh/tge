@@ -47,6 +47,10 @@ class Model:
             norms.append(np.cross(v1 - v0, v2 - v0))
         return np.array(norms)
 
+    def round_vertices(self):
+        """Round vertices to nearest integer"""
+        self.v = np.rint(self.v).astype(int)
+
 
 def apply_transform(model: Model, t: np.ndarray) -> Model:
     """Apply a transformation to a model
