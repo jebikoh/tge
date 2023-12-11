@@ -36,6 +36,11 @@ class Model:
         self.v = self.v + translation
 
     def compute_normals(self) -> np.ndarray:
+        """Compute normals for each face
+
+        Returns:
+            (np.ndarray): matrix of normals for each face. Shape (n, 3) where n is the number of faces
+        """
         norms = []
         for face in self.f:
             v0, v1, v2 = self.v[face]
@@ -54,7 +59,7 @@ def apply_transform(model: Model, t: np.ndarray) -> Model:
         ValueError: If transformation matrix is not 4x4
 
     Returns:
-        Model: Transformed model
+       (Model): Transformed model
     """
     if t.shape != (4, 4):
         raise ValueError("Transformation matrix must be 4x4")
@@ -69,7 +74,7 @@ def load_model(path: str) -> Model:
         path (str): Path to .obj file
 
     Returns:
-        Model: object from .obj file
+        (Model): object from .obj file
     """
     vertices = []
     faces = []

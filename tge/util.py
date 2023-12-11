@@ -2,14 +2,14 @@ import numpy as np
 from enum import Enum
 
 
-def normalize(v: np.ndarray):
+def normalize(v: np.ndarray) -> np.ndarray:
     """Normalize a vector
 
     Args:
         v (np.ndarray): Vector to normalize
 
     Returns:
-        np.ndarray: Normalized vector
+        (np.ndarray): Normalized vector
     """
     return v / np.linalg.norm(v)
 
@@ -27,7 +27,7 @@ class Vec3:
         """
         self.v = np.array([x, y, z])
 
-    def __add__(self, other):
+    def __add__(self, other) -> "Vec3":
         """Add two vectors
 
         Args:
@@ -38,7 +38,7 @@ class Vec3:
             TypeError: if other is not Vec3 or np.ndarray
 
         Returns:
-            Vec3: Sum of vectors
+            (Vec3): Sum of vectors
         """
         if isinstance(other, Vec3):
             v = self.v + other.v
@@ -51,7 +51,7 @@ class Vec3:
         else:
             raise TypeError("Unsupported operand type for +")
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "Vec3":
         """Subtract two vectors
 
         Args:
@@ -62,7 +62,7 @@ class Vec3:
             TypeError: If other is not Vec3 or np.ndarray
 
         Returns:
-            Vec3: Difference of vectors
+            (Vec3): Difference of vectors
         """
         if isinstance(other, Vec3):
             v = self.v - other.v
@@ -76,7 +76,11 @@ class Vec3:
             raise TypeError("Unsupported operand type for -")
 
     def normalize(self):
-        """Normalize the vector"""
+        """Normalize vector
+
+        Returns:
+            (Vec3): returns self (normalized)
+        """
         self.v = normalize(self.v)
         return self
 
@@ -98,12 +102,14 @@ class Vec4:
 
 # Transformations
 class Axis(Enum):
+    """Enum for axis"""
+
     X = 0
     Y = 1
     Z = 2
 
 
-def build_rotation(rad: float, axis: Axis):
+def build_rotation(rad: float, axis: Axis) -> np.ndarray:
     """Builds a rotation matrix along the given axis by given radians
 
     Args:
@@ -111,7 +117,7 @@ def build_rotation(rad: float, axis: Axis):
         axis (Axis): Axis of rotation
 
     Returns:
-        np.ndarray: Rotation matrix (4x4)
+        (np.ndarray): Rotation matrix (4x4)
     """
     if axis == Axis.X:
         c, s = np.cos(rad), np.sin(rad)
@@ -145,7 +151,7 @@ def build_rotation(rad: float, axis: Axis):
         )
 
 
-def build_rotation_deg(deg: float, axis: Axis):
+def build_rotation_deg(deg: float, axis: Axis) -> np.ndarray:
     """Builds a rotation matrix along the given axis by given degrees. Wrapper for rotation_matrix().
 
     Args:
@@ -153,12 +159,12 @@ def build_rotation_deg(deg: float, axis: Axis):
         axis (Axis): Axis of rotation
 
     Returns:
-        np.ndarray: Rotation matrix (4x4)
+        (np.ndarray): Rotation matrix (4x4)
     """
     return build_rotation(np.deg2rad(deg), axis)
 
 
-def build_translation(t_x: float, t_y: float, t_z: float):
+def build_translation(t_x: float, t_y: float, t_z: float) -> np.ndarray:
     """Builds a translation matrix by given x, y, and z translations
 
     Args:
@@ -167,7 +173,7 @@ def build_translation(t_x: float, t_y: float, t_z: float):
         t_z (float): Translation in z
 
     Returns:
-        np.ndarray: Translation matrix (4x4)
+        (np.ndarray): Translation matrix (4x4)
     """
     return np.array(
         [
@@ -179,7 +185,7 @@ def build_translation(t_x: float, t_y: float, t_z: float):
     )
 
 
-def build_scale(s_x: float, s_y: float, s_z: float):
+def build_scale(s_x: float, s_y: float, s_z: float) -> np.ndarray:
     """Builds a scale matrix by given x, y, and z scales
 
     Args:
@@ -188,7 +194,7 @@ def build_scale(s_x: float, s_y: float, s_z: float):
         s_z (float): Scale in z
 
     Returns:
-        np.ndarray: Scale matrix (4x4)
+        (np.ndarray): Scale matrix (4x4)
     """
     return np.array(
         [
@@ -200,13 +206,16 @@ def build_scale(s_x: float, s_y: float, s_z: float):
     )
 
 
-def condense_transformations(transforms: list[np.ndarray]):
+def condense_transformations(transforms: list[np.ndarray]) -> np.ndarray:
     """Condenses a list of transformations into a single transformation matrix.
 
     Note, this method is not particularly efficient for large lists of transformations.
 
     Args:
         transforms (list[np.ndarray]): Transformations in order (from left to right)
+
+    Returns:
+        (np.ndarray): Condensed transformation matrix (4x4)
     """
     result = np.eye(4)
     for T in transforms:

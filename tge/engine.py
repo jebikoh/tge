@@ -21,14 +21,14 @@ class GraphicsEngine:
         self.lights = []
         self.camera = []
 
-    def add_model(self, model: Model):
+    def add_model(self, model: Model) -> int:
         """Add a model to the scene
 
         Args:
             model (Model): Model to add
 
         Returns:
-            int: model ID
+            (int): model ID
         """
         self.models.append(model)
         return len(self.models) - 1
@@ -58,14 +58,14 @@ class GraphicsEngine:
             raise IndexError("Model ID out of range")
         self.models[m_id].apply_transform(t)
 
-    def add_camera(self, camera: Camera):
+    def add_camera(self, camera: Camera) -> int:
         """Add a camera to the scene
 
         Args:
             camera (Camera): Camera to add
 
         Returns:
-            int: camera ID
+            (int): camera ID
         """
         self.camera.append(camera)
         return len(self.camera) - 1

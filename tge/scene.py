@@ -22,12 +22,16 @@ class SpotLight:
 
 
 class Projection(Enum):
+    """Enum for projection types"""
+
     ORTHOGRAPHIC = 0
     PERSPECTIVE = 1
 
 
 # Camera
 class Camera:
+    """Represents a camera"""
+
     def __init__(
         self,
         position: Vec3,
@@ -37,7 +41,7 @@ class Camera:
         near: float,
         far: float,
     ):
-        """Camera object
+        """Initialize a camera
 
         Args:
             position (Vec3): Position of the camera
@@ -59,11 +63,11 @@ class Camera:
         self.near = near
         self.far = far
 
-    def get_view_matrix(self):
+    def get_view_matrix(self) -> np.ndarray:
         """Get the view matrix for the camera
 
         Returns:
-            np.ndarray: View matrix (4x4)
+            (np.ndarray): View matrix (4x4)
         """
         s = normalize(np.cross(self.dir.v, self.up.v))
         u = normalize(np.cross(s, self.dir.v))
@@ -82,7 +86,7 @@ class Camera:
             ]
         )
 
-    def get_proj_matrix(self, aspect_ratio: float, proj_type: Projection):
+    def get_proj_matrix(self, aspect_ratio: float, proj_type: Projection) -> np.ndarray:
         """Get the projection matrix for the camera
 
         Args:
@@ -90,7 +94,7 @@ class Camera:
             proj_type (Projection): Type of projection to use
 
         Returns:
-            np.ndarray: Projection matrix (4x4)
+            (np.ndarray): Projection matrix (4x4)
         """
         if proj_type == Projection.PERSPECTIVE:
             f = 1 / np.tan(self.fov / 2)
