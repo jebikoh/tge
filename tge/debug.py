@@ -56,7 +56,7 @@ def plot_scatter(
     plt.show()
 
 
-def plot_scene(model: Model, camera: Vec3 | None = None):
+def plot_scene(model: Model, camera: Vec3 | None = None, title: str = "Scene"):
     vertices = model.v[:, :-1]
 
     edges = set()
@@ -98,4 +98,5 @@ def plot_scene(model: Model, camera: Vec3 | None = None):
     ax.set_zlabel("Z")  # type: ignore
 
     # Show the plot
+    plt.title(title)
     plt.show()

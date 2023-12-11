@@ -112,24 +112,24 @@ class GraphicsEngine:
         for model in self.models:
             m = apply_transform(model, t)
             if debug:
-                # Origin mdodel
-                plot_scene(model, camera.pos)
+                # Origin model
+                print("Origin model:\n" + str(model.v))
+                plot_scene(model, camera.pos, title="Origin scene")
                 print("Transformed model:\n" + str(m.v))
-                plot_scene(m, ORIGIN)
+                plot_scene(m, ORIGIN, title="Transformed scene")
 
             # Skipping clipping for now; add later if needed
             # Perspective Division
             m.v = m.v / m.v[:, 3].reshape(-1, 1)
             if debug:
                 print("NDC:\n" + str(m.v))
-                plot_scene(m, ORIGIN)
+                plot_scene(m, ORIGIN, title="NDC")
 
             # Convert NDC to screen (in-place)
             self._ndc_to_screen(m)
             models.append(m)
             if debug:
                 print("Screen space:\n" + str(m.v))
-                print(m.v)
             # Rasterization
             norms = m.compute_normals()
             for i, face in enumerate(m.f):

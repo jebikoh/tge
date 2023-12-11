@@ -1,9 +1,7 @@
 from tge.engine import GraphicsEngine
-from tge.model import Model, load_model
+from tge.model import load_model
 from tge.scene import Camera, Projection
 from tge.util import Vec3, build_scale
-from tge.debug import plot_scene
-import numpy as np
 
 if __name__ == "__main__":
     engine = GraphicsEngine((60, 30))
