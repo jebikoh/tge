@@ -7,7 +7,7 @@ import numpy as np
 if __name__ == "__main__":
     engine = GraphicsEngine((50, 30))
 
-    cube = load_model("models/cube.obj")
+    cube = load_model("tests/models/cube.obj")
     print("Cube vertices:")
     print(cube.v)
     cube.apply_transform(build_scale(20, 20, 20))

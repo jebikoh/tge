@@ -1,7 +1,7 @@
 import numpy as np
-from display import Display
-from model import Model, apply_transform
-from scene import Camera, Projection
+from .display import Display
+from .model import Model, apply_transform
+from .scene import Camera, Projection
 
 
 class GraphicsEngine:

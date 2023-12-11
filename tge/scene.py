@@ -1,5 +1,5 @@
 import numpy as np
-from util import Vec3, normalize
+from .util import Vec3, normalize
 from enum import Enum
 
 
