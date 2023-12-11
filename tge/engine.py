@@ -1,4 +1,3 @@
-from typing import List
 import numpy as np
 from display import Display
 from model import Model, apply_transform
@@ -6,8 +5,10 @@ from scene import Camera, Projection
 
 
 class GraphicsEngine:
+    """Graphics engine for rendering 3D models to the terminal. Handles rendering pipeline and rasterization."""
+
     def __init__(self, resolution: tuple[int, int], ups: int = 60):
-        """Graphics engine that can render, shade, and manipulate 3D models
+        """Initialize a graphics engine
 
         Args:
             resolution (tuple[int, int]): Resolution of the display (width, height) in characters
@@ -21,22 +22,65 @@ class GraphicsEngine:
         self.camera = []
 
     def add_model(self, model: Model):
+        """Add a model to the scene
+
+        Args:
+            model (Model): Model to add
+
+        Returns:
+            int: model ID
+        """
         self.models.append(model)
         return len(self.models) - 1
 
     def remove_model(self, id: int):
+        """Removes a model from the scene
+
+        Args:
+            id (int): model ID
+        """
         self.models.pop(id)
 
     def transform_model(self, m_id: int, t: np.ndarray):
+        """Apply a transformation to a model in the scene
+
+        Args:
+            m_id (int): model ID
+            t (np.ndarray): transformation matrix to apply (4x4)
+
+        Raises:
+            ValueError: If transformation matrix is not 4x4
+            IndexError: If model ID is invalid
+        """
         if t.shape != (4, 4):
             raise ValueError("Transformation matrix must be 4x4")
+        if m_id >= len(self.models):
+            raise IndexError("Model ID out of range")
         self.models[m_id].apply_transform(t)
 
     def add_camera(self, camera: Camera):
+        """Add a camera to the scene
+
+        Args:
+            camera (Camera): Camera to add
+
+        Returns:
+            int: camera ID
+        """
         self.camera.append(camera)
         return len(self.camera) - 1
 
     def remove_camera(self, id: int):
+        """Removes a camera from the scene
+
+        Args:
+            id (int): camera ID
+
+        Raises:
+            IndexError: if camera ID is invalid
+        """
+        if id >= len(self.camera):
+            raise IndexError("Camera ID out of range")
         self.camera.pop(id)
 
     def render(
@@ -79,15 +123,12 @@ class GraphicsEngine:
                 print("Screen space:")
                 print(m.v)
 
-            # Back-face culling
+            # Rasterization
             for i, face in enumerate(m.f):
                 view = camera.pos - m.v[face[0]]
+                # Back-face culling
                 if np.dot(m.n[i], view) > 0:
                     continue
-
-        # Lighting
-        # Depth-testing
-        # Frame Buffering
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
         """Converts a model with points in NDC to screen coordinates (in-place)
@@ -103,7 +144,3 @@ class GraphicsEngine:
             screen_v[:, 1] = self.display.height - screen_v[:, 1]
 
         m.v = screen_v
-
-
-def _is_back_face(normal: np.ndarray, view: np.ndarray) -> bool:
-    return np.dot(normal, view) > 0
