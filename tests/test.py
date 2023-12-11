@@ -5,7 +5,7 @@ from tge.util import Vec3, build_scale
 import numpy as np
 
 if __name__ == "__main__":
-    engine = GraphicsEngine((50, 30))
+    engine = GraphicsEngine((60, 30))
 
     cube = load_model("tests/models/cube.obj")
     print("Cube vertices:")

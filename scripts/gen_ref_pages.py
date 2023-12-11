@@ -13,9 +13,7 @@ for path in sorted(src.rglob("*.py")):
 
     parts = list(module_path.parts)
 
-    if parts[-1] == "__init__":
-        parts = parts[:-1]
-    elif parts[-1] == "__main__":
+    if parts[-1] == "__main__" or parts[-1] == "__init__":
         continue
 
     with mkdocs_gen_files.open(full_doc_path, "w") as fd:

@@ -112,7 +112,7 @@ class GraphicsEngine:
             m = apply_transform(model, t)
             # Skipping clipping for now; add later if needed
             # Perspective Division
-            m.v = m.v / m.v[:, 3].reshape(-1, 1)
+            m.v = (m.v / m.v[:, 3].reshape(-1, 1))[:, :-1]
             if debug:
                 print("NDC:")
                 print(m.v)
@@ -125,9 +125,12 @@ class GraphicsEngine:
 
             # Rasterization
             for i, face in enumerate(m.f):
-                view = camera.pos - m.v[face[0]]
+                view = camera.pos.v - m.v[face[0]]
+                norms = m.compute_normals()
                 # Back-face culling
-                if np.dot(m.n[i], view) > 0:
+                if np.dot(norms[i], view) > 0:
+                    if debug:
+                        print(f"Culled face {i}")
                     continue
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):

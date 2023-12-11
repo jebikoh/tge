@@ -15,16 +15,65 @@ def normalize(v: np.ndarray):
 
 
 class Vec3:
+    """Represents a 3D vector"""
+
     def __init__(self, x: float, y: float, z: float):
+        """Initialize a 3D vector
+
+        Args:
+            x (float): x component
+            y (float): y component
+            z (float): z component
+        """
         self.v = np.array([x, y, z])
 
     def __add__(self, other):
-        v = self.v + other.v
-        return Vec3(v[0], v[1], v[2])
+        """Add two vectors
+
+        Args:
+            other (Vec3 | np.ndarray): Other vector to add. Must be Vec3 or np.ndarray of shape (3,)
+
+        Raises:
+            ValueError: if other is np.ndarray of wrong shape
+            TypeError: if other is not Vec3 or np.ndarray
+
+        Returns:
+            Vec3: Sum of vectors
+        """
+        if isinstance(other, Vec3):
+            v = self.v + other.v
+            return Vec3(v[0], v[1], v[2])
+        elif isinstance(other, np.ndarray):
+            if other.shape != (3,):
+                raise ValueError("Vector must be 3 dimensional")
+            v = self.v + other
+            return Vec3(v[0], v[1], v[2])
+        else:
+            raise TypeError("Unsupported operand type for +")
 
     def __sub__(self, other):
-        v = self.v - other.v
-        return Vec3(v[0], v[1], v[2])
+        """Subtract two vectors
+
+        Args:
+            other (Vec3 | np.ndarray): Other vector to subtract. Must be Vec3 or np.ndarray of shape (3,)
+
+        Raises:
+            ValueError: If other is np.ndarray of wrong shape
+            TypeError: If other is not Vec3 or np.ndarray
+
+        Returns:
+            Vec3: Difference of vectors
+        """
+        if isinstance(other, Vec3):
+            v = self.v - other.v
+            return Vec3(v[0], v[1], v[2])
+        elif isinstance(other, np.ndarray):
+            if other.shape != (3,):
+                raise ValueError("Vector must be 3 dimensional")
+            v = self.v - other
+            return Vec3(v[0], v[1], v[2])
+        else:
+            raise TypeError("Unsupported operand type for -")
 
     def normalize(self):
         """Normalize the vector"""
@@ -33,7 +82,17 @@ class Vec3:
 
 
 class Vec4:
+    """Represents a 3D vector with a homogeneous coordinate"""
+
     def __init__(self, x: float, y: float, z: float, w: float):
+        """Initialize a 3D vector with a homogeneous coordinate
+
+        Args:
+            x (float): x component
+            y (float): y component
+            z (float): z component
+            w (float): w component
+        """
         self.v = np.array([x, y, z, w])
 
 
@@ -52,7 +111,7 @@ def build_rotation(rad: float, axis: Axis):
         axis (Axis): Axis of rotation
 
     Returns:
-        _type_: Rotation matrix (4x4)
+        np.ndarray: Rotation matrix (4x4)
     """
     if axis == Axis.X:
         c, s = np.cos(rad), np.sin(rad)
@@ -94,7 +153,7 @@ def build_rotation_deg(deg: float, axis: Axis):
         axis (Axis): Axis of rotation
 
     Returns:
-        _type_: Rotation matrix (4x4)
+        np.ndarray: Rotation matrix (4x4)
     """
     return build_rotation(np.deg2rad(deg), axis)
 
@@ -108,7 +167,7 @@ def build_translation(t_x: float, t_y: float, t_z: float):
         t_z (float): Translation in z
 
     Returns:
-        _type_: Translation matrix (4x4)
+        np.ndarray: Translation matrix (4x4)
     """
     return np.array(
         [
@@ -129,7 +188,7 @@ def build_scale(s_x: float, s_y: float, s_z: float):
         s_z (float): Scale in z
 
     Returns:
-        _type_: Scale matrix (4x4)
+        np.ndarray: Scale matrix (4x4)
     """
     return np.array(
         [
