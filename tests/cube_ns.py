@@ -1,7 +1,7 @@
 from tge.engine import GraphicsEngine
 from tge.model import load_model
 from tge.camera import Camera, Projection
-from tge.util import Vec3, build_scale
+from tge.util import Vec3, build_scale, build_rotation_deg, Axis
 from tge.display import clear
 import time
 
@@ -10,6 +10,9 @@ if __name__ == "__main__":
 
     cube = load_model("tests/models/cube.obj")
     cube.apply_transform(build_scale(10, 10, 10))
+    cube.apply_transform(build_rotation_deg(45, Axis.Y))
+    cube.apply_transform(build_rotation_deg(45, Axis.X))
+
     FOV = 1.0472
     aspect_ratio = 2
     near_plane = 0.1
@@ -18,15 +21,15 @@ if __name__ == "__main__":
     engine.add_model(cube)
 
     camera = Camera(
-        Vec3(0, 0, 30), Vec3(0, 0, 0), Vec3(0, 1, 0), FOV, near_plane, far_plane
+        Vec3(0, 0, 50), Vec3(0, 0, 0), Vec3(0, 1, 0), FOV, near_plane, far_plane
     )
     engine.add_camera(camera)
 
     engine.render(0, Projection.PERSPECTIVE, debug=True)
-    # try:
-    #     while True:
-    #         engine.display.render_buffer()
-    #         time.sleep(1)
-    # except KeyboardInterrupt:
-    #     clear()
-    #     print("Test terminated.")
+    try:
+        while True:
+            engine.display.render_buffer()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        clear()
+        print("Test terminated.")

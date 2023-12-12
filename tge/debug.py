@@ -6,6 +6,8 @@ from enum import Enum
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+from tge.camera import Camera
 from .model import Model
 from .util import Vec3
 
@@ -56,7 +58,7 @@ def plot_scatter(
     plt.show()
 
 
-def plot_scene(model: Model, camera: Vec3 | None = None, title: str = "Scene"):
+def plot_scene(model: Model, camera: Camera, title: str = "Scene"):
     vertices = model.v[:, :-1]
 
     edges = set()
@@ -85,11 +87,27 @@ def plot_scene(model: Model, camera: Vec3 | None = None, title: str = "Scene"):
     # Plot the camera
     if camera is not None:
         ax.scatter(
-            camera.v[0],
-            camera.v[1],
-            camera.v[2],
+            camera.pos.v[0],
+            camera.pos.v[1],
+            camera.pos.v[2],
             c="red",
             label="camera",
+        )
+        toward = camera.pos.v + camera.dir.v
+        ax.scatter(
+            toward[0],
+            toward[1],
+            toward[2],
+            c="blue",
+            label="dir",
+        )
+        up = camera.pos.v + camera.up.v
+        ax.scatter(
+            up[0],
+            up[1],
+            up[2],
+            c="green",
+            label="up",
         )
 
     # Set labels for the axes

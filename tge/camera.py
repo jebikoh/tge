@@ -16,7 +16,7 @@ class Camera:
     def __init__(
         self,
         position: Vec3,
-        direction: Vec3,
+        target: Vec3,
         up: Vec3,
         fov: float,
         near: float,
@@ -26,7 +26,7 @@ class Camera:
 
         Args:
             position (Vec3): Position of the camera
-            direction (Vec3): Position the camera is looking at
+            target (Vec3): Position the camera is looking at
             up (Vec3): Up vector of the camera
             fov (float): Field of view of the camera (radians)
             near (float): Near plane of the camera (distance)
@@ -34,7 +34,7 @@ class Camera:
         """
         self.pos = position
 
-        self.dir = direction - self.pos
+        self.dir = target - self.pos
         self.dir.normalize()
 
         self.up = up
@@ -50,13 +50,13 @@ class Camera:
         Returns:
             (np.ndarray): View matrix (4x4)
         """
-        s = normalize(np.cross(self.dir.v, self.up.v))
-        u = normalize(np.cross(s, self.dir.v))
+        right = normalize(np.cross(self.dir.v, self.up.v))
+        up = normalize(np.cross(right, self.dir.v))
 
         return np.array(
             [
-                [s[0], s[1], s[2], -np.dot(s, self.pos.v)],
-                [u[0], u[1], u[2], -np.dot(u, self.pos.v)],
+                [right[0], right[1], right[2], -np.dot(right, self.pos.v)],
+                [up[0], up[1], up[2], -np.dot(up, self.pos.v)],
                 [
                     -self.dir.v[0],
                     -self.dir.v[1],
@@ -86,8 +86,8 @@ class Camera:
                     [
                         0,
                         0,
-                        -(self.far + self.near) / (self.far - self.near),
-                        -(2 * self.far * self.near) / (self.far - self.near),
+                        (self.far + self.near) / (self.far - self.near),
+                        (2 * self.far * self.near) / (self.far - self.near),
                     ],
                     [0, 0, -1, 0],
                 ]

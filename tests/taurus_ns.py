@@ -1,7 +1,7 @@
 from tge.engine import GraphicsEngine
 from tge.model import load_model
 from tge.camera import Camera, Projection
-from tge.util import Vec3, build_scale
+from tge.util import Axis, Vec3, build_rotation_deg, build_scale
 from tge.lights import DirectionalLight
 from tge.display import clear
 import time
@@ -11,8 +11,9 @@ if __name__ == "__main__":
     engine = GraphicsEngine((100, 50))
 
     # Models
-    cube = load_model("tests/models/isosphere.obj")
+    cube = load_model("tests/models/taurus.obj")
     cube.apply_transform(build_scale(10, 10, 10))
+    cube.apply_transform(build_rotation_deg(45, Axis.X))
     engine.add_model(cube)
 
     # Camera

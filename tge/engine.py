@@ -164,35 +164,75 @@ class GraphicsEngine:
             print("Transform Matrix:\n" + str(t))
 
         for model in self.models:
-            m = apply_transform(model, t, compute_norms=False)
             if debug:
                 print("Original model:\n" + str(model.v))
-                plot_scene(model, camera.pos, title="Origin scene")
-                print("Transformed model:\n" + str(m.v))
-                plot_scene(m, ORIGIN, title="Transformed scene")
+                plot_scene(model, camera, title="Original scene")
+            m = apply_transform(model, view_matrix, compute_norms=False)
+            if debug:
+                print("View matrix model:\n" + str(m.v))
+                plot_scene(
+                    m,
+                    Camera(
+                        ORIGIN,
+                        camera.dir,
+                        camera.up,
+                        camera.fov,
+                        camera.near,
+                        camera.far,
+                    ),
+                    title="View Matrix",
+                )
+            m.apply_transform(proj_matrix)
+            if debug:
+                print("Projection matrix model:\n" + str(m.v))
+                plot_scene(
+                    m,
+                    Camera(
+                        ORIGIN,
+                        camera.dir,
+                        camera.up,
+                        camera.fov,
+                        camera.near,
+                        camera.far,
+                    ),
+                    title="Projection Matrix",
+                )
+
+            # if debug:
+            #     print("Transformed model:\n" + str(m.v))
+            #     plot_scene(m, ORIGIN, title="Transformed scene")
 
             # Skipping clipping for now; add later if needed
             # Perspective Division
             m.v = m.v / m.v[:, 3].reshape(-1, 1)
             if debug:
                 print("NDC:\n" + str(m.v))
-                plot_scene(m, ORIGIN, title="NDC")
+                plot_scene(
+                    m,
+                    Camera(
+                        ORIGIN,
+                        camera.dir,
+                        camera.up,
+                        camera.fov,
+                        camera.near,
+                        camera.far,
+                    ),
+                    title="Screen space",
+                )
 
             # Convert NDC to screen (in-place)
-            self._ndc_to_screen(m)
+            self._ndc_to_screen(m, inv_y=True)
             m.round_vertices()
 
-            if debug:
-                print("Screen space:\n" + str(m.v))
             # Rasterization
             norms = model.n
             # Ideally, this should never happen
             if model.n is None:
                 norms = m.compute_normals()
             for i, face in enumerate(m.f):
-                view = Vec3(0, 0, 1)
+                view = camera.dir.v
                 # Back-face culling
-                if np.dot(norms[i], view.v) > 0:
+                if np.dot(norms[i], view) > 0:
                     if debug:
                         print(f"Culled face {i}")
                     continue

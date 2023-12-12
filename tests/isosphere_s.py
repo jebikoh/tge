@@ -23,8 +23,11 @@ if __name__ == "__main__":
         Camera(Vec3(0, 0, 30), Vec3(0, 0, 0), Vec3(0, 1, 0), FOV, near_plane, far_plane)
     )
 
+    # Lights
+    engine.add_light(DirectionalLight(Vec3(0, 0, -1)))
+
     # Action
-    engine.render(0, Projection.PERSPECTIVE, debug=True)
+    engine.render(0, Projection.PERSPECTIVE, debug=False)
     try:
         while True:
             engine.display.render_buffer()

@@ -11,7 +11,7 @@ if __name__ == "__main__":
     engine = GraphicsEngine((100, 50))
 
     # Models
-    cube = load_model("tests/models/isosphere.obj")
+    cube = load_model("tests/models/monkey.obj")
     cube.apply_transform(build_scale(10, 10, 10))
     engine.add_model(cube)
 

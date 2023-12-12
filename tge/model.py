@@ -3,7 +3,7 @@ from .util import normalize
 
 
 class Model:
-    """Class representing a 3D model. Defined by vertices and faces. Uses left-handed coordinate system."""
+    """Class representing a 3D model. Defined by vertices and faces. Uses right-handed coordinate system."""
 
     def __init__(
         self, vertices: np.ndarray, faces: np.ndarray, compute_norms: bool = True
@@ -83,7 +83,7 @@ def apply_transform(model: Model, t: np.ndarray, compute_norms: bool = True) -> 
     if t.shape != (4, 4):
         raise ValueError("Transformation matrix must be 4x4")
 
-    return Model(model.v @ t.T, model.f.copy(), compute_norms=True)
+    return Model(model.v @ t.T, model.f.copy(), compute_norms=compute_norms)
 
 
 def load_model(path: str) -> Model:
@@ -102,8 +102,6 @@ def load_model(path: str) -> Model:
         for line in f:
             if line.startswith("v "):
                 v = [float(num) for num in line[2:].strip().split(" ") if num] + [1.0]
-                # TGE is left-handed, so we need to flip this coordinate
-                v[2] *= -1
                 vertices.append(v)
 
             elif line.startswith("f "):
