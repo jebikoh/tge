@@ -1,3 +1,5 @@
+from typing import List, Tuple
+from collections import defaultdict
 import numpy as np
 from .display import Display
 from .model import Model, apply_transform
@@ -112,8 +114,7 @@ class GraphicsEngine:
         for model in self.models:
             m = apply_transform(model, t)
             if debug:
-                # Origin model
-                print("Origin model:\n" + str(model.v))
+                print("Original model:\n" + str(model.v))
                 plot_scene(model, camera.pos, title="Origin scene")
                 print("Transformed model:\n" + str(m.v))
                 plot_scene(m, ORIGIN, title="Transformed scene")
@@ -141,12 +142,19 @@ class GraphicsEngine:
                         print(f"Culled face {i}")
                     continue
                 v0, v1, v2 = m.v[face]
-                _bresenhams_line(v0[0], v1[0], v0[1], v1[1], buf)
-                _bresenhams_line(v1[0], v2[0], v1[1], v2[1], buf)
-                _bresenhams_line(v2[0], v0[0], v2[1], v0[1], buf)
-                if debug:
-                    self.display.update_buffer(buf)
-                    self.display.render()
+
+                # Edge walking & scan conversion
+                # NOTE: this part can probably be optimized more
+                edge_points = []
+                edge_points += _bresenhams_line(v0[0], v1[0], v0[1], v1[1], buf)
+                edge_points += _bresenhams_line(v1[0], v2[0], v1[1], v2[1], buf)
+                edge_points += _bresenhams_line(v2[0], v0[0], v2[1], v0[1], buf)
+                edge_points = list(set(edge_points))
+
+                _fill_span(edge_points, buf)
+
+                self.display.update_buffer(buf)
+                self.display.render()
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
         """Converts a model with points in NDC to screen coordinates (in-place)
@@ -194,4 +202,22 @@ def _bresenhams_line(
             e += dx
             y0 += sy
 
-    # print(points)
+    return points
+
+
+def _fill_span(edge_pts: List[Tuple[int, int]], buf: np.ndarray, char: str = "@"):
+    h, w = buf.shape
+
+    scan_lines = defaultdict(list)
+    for x, y in edge_pts:
+        scan_lines[y].append(x)
+
+    for y, x_pts in scan_lines.items():
+        if len(x_pts) == 1:
+            buf[y, x_pts[0]] = char
+        else:
+            x_pts.sort()
+            x_start, x_end = x_pts[0], x_pts[-1]
+            for i in range(x_start, x_end + 1):
+                if 0 <= i < w and 0 <= y < h:
+                    buf[y, i] = char

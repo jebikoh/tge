@@ -6,7 +6,7 @@ from enum import Enum
 # Light types
 class DirectionalLight:
     def __init__(self, direction: Vec3):
-        self.dir = direction
+        self.dir = direction.normalize()
 
 
 class PointLight:
