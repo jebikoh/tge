@@ -7,7 +7,7 @@ if __name__ == "__main__":
     engine = GraphicsEngine((60, 30))
 
     cube = load_model("tests/models/cube.obj")
-    cube.apply_transform(build_scale(20, 20, 20))
+    cube.apply_transform(build_scale(10, 10, 10))
     FOV = 1.0472
     aspect_ratio = 2
     near_plane = 0.1

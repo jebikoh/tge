@@ -134,12 +134,12 @@ class GraphicsEngine:
             # Rasterization
             norms = m.compute_normals()
             for i, face in enumerate(m.f):
-                view = camera.pos.v - (m.v[face[0]])[:-1]
+                view = Vec3(0, 0, 1)
                 # Back-face culling
-                # if np.dot(norms[i], view) > 0:
-                #     if debug:
-                #         print(f"Culled face {i}")
-                #     continue
+                if np.dot(norms[i], view.v) > 0:
+                    if debug:
+                        print(f"Culled face {i}")
+                    continue
                 v0, v1, v2 = m.v[face]
                 _bresenhams_line(v0[0], v1[0], v0[1], v1[1], buf)
                 _bresenhams_line(v1[0], v2[0], v1[1], v2[1], buf)
@@ -164,7 +164,9 @@ class GraphicsEngine:
         m.v = screen_v
 
 
-def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, buf: np.ndarray):
+def _bresenhams_line(
+    x0: int, x1: int, y0: int, y1: int, buf: np.ndarray, char: str = "@"
+):
     h, w = buf.shape
 
     points = []
@@ -178,7 +180,7 @@ def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, buf: np.ndarray):
     points = []
     while True:
         if 0 <= x0 < w and 0 <= y0 < h:
-            buf[y0, x0] = "@"
+            buf[y0, x0] = char
         points.append((x0, y0))
 
         if x0 == x1 and y0 == y1:

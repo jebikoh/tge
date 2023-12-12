@@ -1,8 +1,9 @@
 import numpy as np
+from .util import normalize
 
 
 class Model:
-    """Class representing a 3D model. Defined by vertices and faces."""
+    """Class representing a 3D model. Defined by vertices and faces. Uses left-handed coordinate system."""
 
     def __init__(self, vertices: np.ndarray, faces: np.ndarray):
         self.v = vertices
@@ -44,7 +45,7 @@ class Model:
         norms = []
         for face in self.f:
             v0, v1, v2 = (self.v[:, :-1])[face]
-            norms.append(np.cross(v1 - v0, v2 - v0))
+            norms.append(normalize(np.cross(v1 - v0, v2 - v0)))
         return np.array(norms)
 
     def round_vertices(self):
@@ -72,7 +73,7 @@ def apply_transform(model: Model, t: np.ndarray) -> Model:
 
 
 def load_model(path: str) -> Model:
-    """Load a model from a .obj file
+    """Load a model from a .obj file. At the moment, this only supports vertices and faces.
 
     Args:
         path (str): Path to .obj file
@@ -86,12 +87,20 @@ def load_model(path: str) -> Model:
     with open(path, "r") as f:
         for line in f:
             if line.startswith("v "):
-                vertices.append(
-                    [float(num) for num in line[2:].strip().split(" ") if num] + [1.0]
-                )
+                v = [float(num) for num in line[2:].strip().split(" ") if num] + [1.0]
+                # TGE is left-handed, so we need to flip this coordinate
+                v[2] *= -1
+                vertices.append(v)
+
             elif line.startswith("f "):
                 faces.append(
-                    [(int(num) - 1) for num in line[2:].strip().split(" ") if num]
+                    [
+                        (int(face.split("/")[0]) - 1)
+                        for face in line[2:].strip().split(" ")
+                        if face
+                    ]
                 )
+            else:
+                continue
 
     return Model(np.array(vertices), np.array(faces))
