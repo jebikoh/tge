@@ -5,15 +5,22 @@ from .util import normalize
 class Model:
     """Class representing a 3D model. Defined by vertices and faces. Uses left-handed coordinate system."""
 
-    def __init__(self, vertices: np.ndarray, faces: np.ndarray):
+    def __init__(
+        self, vertices: np.ndarray, faces: np.ndarray, compute_norms: bool = True
+    ):
         self.v = vertices
         self.f = faces
+        if compute_norms:
+            self.n = self.compute_normals()
+        else:
+            self.n = None
 
-    def apply_transform(self, transformation: np.ndarray):
+    def apply_transform(self, transformation: np.ndarray, preserve_norms: bool = False):
         """Apply a transformation to the model
 
         Args:
             transformation (np.ndarray): 4x4 transformation matrix
+            preserve_norms (bool, optional): Whether to preserve the normals of the model. Defaults to False.
 
         Raises:
             ValueError: If transformation matrix is not 4x4
@@ -22,6 +29,8 @@ class Model:
             raise ValueError("Transformation matrix must be 4x4")
 
         self.v = self.v @ transformation.T
+        if not preserve_norms:
+            self.n = self.compute_normals()
 
     def apply_translate(self, translation: np.ndarray):
         """Apply a translation to the model
@@ -57,12 +66,13 @@ class Model:
         self.v = np.rint(self.v).astype(int)
 
 
-def apply_transform(model: Model, t: np.ndarray) -> Model:
+def apply_transform(model: Model, t: np.ndarray, compute_norms: bool = True) -> Model:
     """Apply a transformation to a model
 
     Args:
         model (Model): Model to transform
         t (np.ndarray): 4x4 transformation matrix
+        compute_norms (bool, optional): Whether to compute normals for the transformed model. Defaults to True.
 
     Raises:
         ValueError: If transformation matrix is not 4x4
@@ -73,7 +83,7 @@ def apply_transform(model: Model, t: np.ndarray) -> Model:
     if t.shape != (4, 4):
         raise ValueError("Transformation matrix must be 4x4")
 
-    return Model(model.v @ t.T, model.f.copy())
+    return Model(model.v @ t.T, model.f.copy(), compute_norms=True)
 
 
 def load_model(path: str) -> Model:

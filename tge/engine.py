@@ -164,7 +164,7 @@ class GraphicsEngine:
             print("Transform Matrix:\n" + str(t))
 
         for model in self.models:
-            m = apply_transform(model, t)
+            m = apply_transform(model, t, compute_norms=False)
             if debug:
                 print("Original model:\n" + str(model.v))
                 plot_scene(model, camera.pos, title="Origin scene")
@@ -185,7 +185,10 @@ class GraphicsEngine:
             if debug:
                 print("Screen space:\n" + str(m.v))
             # Rasterization
-            norms = model.compute_normals()
+            norms = model.n
+            # Ideally, this should never happen
+            if model.n is None:
+                norms = m.compute_normals()
             for i, face in enumerate(m.f):
                 view = Vec3(0, 0, 1)
                 # Back-face culling
