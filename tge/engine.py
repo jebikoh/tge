@@ -185,7 +185,7 @@ class GraphicsEngine:
             if debug:
                 print("Screen space:\n" + str(m.v))
             # Rasterization
-            norms = m.compute_normals()
+            norms = model.compute_normals()
             for i, face in enumerate(m.f):
                 view = Vec3(0, 0, 1)
                 # Back-face culling
@@ -204,7 +204,7 @@ class GraphicsEngine:
                 edge_points = list(set(edge_points))
 
                 intensity = (
-                    self.directional_lights[-1].get_intensity(norms[i])
+                    self.directional_lights[-1].compute_intensity(norms[i])
                     if len(self.directional_lights) > 0
                     else 1.0
                 )

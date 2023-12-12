@@ -23,10 +23,10 @@ if __name__ == "__main__":
     engine.add_camera(camera)
 
     engine.render(0, Projection.PERSPECTIVE, debug=True)
-    try:
-        while True:
-            engine.display.render_buffer()
-            time.sleep(1)
-    except KeyboardInterrupt:
-        clear()
-        print("Test terminated.")
+    # try:
+    #     while True:
+    #         engine.display.render_buffer()
+    #         time.sleep(1)
+    # except KeyboardInterrupt:
+    #     clear()
+    #     print("Test terminated.")

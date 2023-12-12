@@ -42,11 +42,15 @@ class Model:
         Returns:
             (np.ndarray): matrix of normals for each face. Shape (n, 3) where n is the number of faces
         """
-        norms = []
-        for face in self.f:
-            v0, v1, v2 = (self.v[:, :-1])[face]
-            norms.append(normalize(np.cross(v1 - v0, v2 - v0)))
-        return np.array(norms)
+        v0 = self.v[self.f[:, 0]][:, :-1]
+        v1 = self.v[self.f[:, 1]][:, :-1]
+        v2 = self.v[self.f[:, 2]][:, :-1]
+
+        e1, e2 = v1 - v0, v2 - v0
+        normals = np.cross(e1, e2).astype(np.float64)
+        normals /= np.linalg.norm(normals, axis=1, keepdims=True)
+
+        return normals
 
     def round_vertices(self):
         """Round vertices to nearest integer"""
