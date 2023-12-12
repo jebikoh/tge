@@ -5,10 +5,10 @@ import signal
 
 CLEAR = "\033[2J"
 HOME = "\033[H"
-CHAR_SET = [".", ",", "-", "~", ":", ";", "=", "!", "*", "#", "$", "@"]
+CHAR_SET = [" ", ".", ",", "-", "~", ":", ";", "=", "!", "*", "#", "$", "@"]
 
 
-def _get_terminal_size():
+def get_terminal_size():
     height, width = os.popen("stty size", "r").read().split()
     return int(width), int(height)
 
@@ -45,7 +45,7 @@ class Display:
         signal.signal(signal.SIGWINCH, self._handle_resize)
 
     def _calculate_start_pos(self):
-        w, h = _get_terminal_size()
+        w, h = get_terminal_size()
         start_row = max((h - self.height) // 2, 0)
         start_column = max((w - self.width * self.hspace) // 2, 0)
         return start_row, start_column
@@ -61,27 +61,23 @@ class Display:
     def _handle_resize(self, signum, frame):
         self.start_row, self.start_col = self._calculate_start_pos()
 
-    def build_empty_buffer(self):
-        """Build an empty buffer"""
-        return np.full((self.height, self.width), " ", dtype="<U1")
-
-    def update_buffer(self, new_buf: np.ndarray):
-        """Update the buffer with new content
+    def update_buffer(self, r: np.ndarray):
+        """Converts render output to a character-based buffer and updates frame buffer
 
         Args:
-            new_buf (np.ndarray): new buffer
+            new_buf (np.ndarray): render output
 
         Raises:
             ValueError: if the shape of new_buf does not match the shape of the current buffer
         """
-        if new_buf.shape != self.buf.shape:
+        if r.shape != self.buf.shape:
             raise ValueError(
-                f"New content shape {new_buf.shape} does not match buffer shape {self.buf.shape}"
+                f"Render output shape {r.shape} does not match buffer shape {self.buf.shape}"
             )
-        # Add logic here to update self.buf with new_content
-        self.buf = new_buf
+        r_i = np.round(r * (len(CHAR_SET) - 1)).astype(int)
+        self.buf = np.array(CHAR_SET)[r_i]
 
-    def render(self):
+    def render_buffer(self):
         """Render the buffer to the terminal"""
         fbuf = self._buf_to_fb()
         _write(fbuf)

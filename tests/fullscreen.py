@@ -1,15 +1,20 @@
 from tge.engine import GraphicsEngine
 from tge.model import load_model
 from tge.camera import Camera, Projection
-from tge.util import Vec3, build_scale
-from tge.display import clear
+from tge.util import Vec3, build_scale, build_rotation_deg, Axis
+from tge.display import get_terminal_size, clear
 import time
+import numpy as np
 
 if __name__ == "__main__":
-    engine = GraphicsEngine((60, 30))
+    w, h = get_terminal_size()
+    # print(w, h)
+    engine = GraphicsEngine((180, 40))
 
     cube = load_model("tests/models/cube.obj")
-    cube.apply_transform(build_scale(10, 10, 10))
+    cube.apply_transform(build_scale(5, 5, 5))
+    cube.apply_transform(build_rotation_deg(45, Axis.Y))
+
     FOV = 1.0472
     aspect_ratio = 2
     near_plane = 0.1
@@ -21,8 +26,8 @@ if __name__ == "__main__":
         Vec3(0, 0, 30), Vec3(0, 0, 0), Vec3(0, 1, 0), FOV, near_plane, far_plane
     )
     engine.add_camera(camera)
+    engine.render(0, Projection.PERSPECTIVE, debug=False)
 
-    engine.render(0, Projection.PERSPECTIVE, debug=True)
     try:
         while True:
             engine.display.render_buffer()

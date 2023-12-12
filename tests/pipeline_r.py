@@ -1,7 +1,9 @@
 from tge.engine import GraphicsEngine
 from tge.model import load_model
-from tge.scene import Camera, Projection
+from tge.camera import Camera, Projection
 from tge.util import Vec3, build_rotation_deg, build_scale, Axis
+from tge.display import clear
+import time
 
 if __name__ == "__main__":
     engine = GraphicsEngine((60, 30))
@@ -23,3 +25,11 @@ if __name__ == "__main__":
     engine.add_camera(camera)
 
     engine.render(0, Projection.PERSPECTIVE, debug=False)
+
+    try:
+        while True:
+            engine.display.render_buffer()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        clear()
+        print("Test terminated.")

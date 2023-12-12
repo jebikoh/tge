@@ -3,24 +3,6 @@ from .util import Vec3, normalize
 from enum import Enum
 
 
-# Light types
-class DirectionalLight:
-    def __init__(self, direction: Vec3):
-        self.dir = direction.normalize()
-
-
-class PointLight:
-    def __init__(self, position: Vec3):
-        self.pos = position
-
-
-class SpotLight:
-    def __init__(self, position: Vec3, direction: Vec3, angle: float):
-        self.pos = position
-        self.dir = direction
-        self.angle = angle
-
-
 class Projection(Enum):
     """Enum for projection types"""
 
@@ -28,7 +10,6 @@ class Projection(Enum):
     PERSPECTIVE = 1
 
 
-# Camera
 class Camera:
     """Represents a camera"""
 

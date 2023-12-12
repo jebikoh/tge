@@ -3,7 +3,8 @@ from collections import defaultdict
 import numpy as np
 from .display import Display
 from .model import Model, apply_transform
-from .scene import Camera, Projection
+from .camera import Camera, Projection
+from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
 from .debug import plot_scatter, plot_scene
 
@@ -24,7 +25,9 @@ class GraphicsEngine:
         self.aspect_ratio = resolution[0] / resolution[1]
         self.ups = ups
         self.models = []
-        self.lights = []
+        self.directional_lights = []
+        self.point_lights = []
+        self.spot_lights = []
         self.camera = []
 
     def add_model(self, model: Model) -> int:
@@ -89,19 +92,68 @@ class GraphicsEngine:
             raise IndexError("Camera ID out of range")
         self.camera.pop(id)
 
+    def add_light(self, light: DirectionalLight | PointLight | SpotLight) -> str:
+        """Add a light to the scene
+
+        Args:
+            light (DirectionalLight | PointLight | SpotLight): Light to add
+
+        Returns:
+            (int): light ID
+        """
+        if isinstance(light, DirectionalLight):
+            self.directional_lights.append(light)
+            return "d_" + str(len(self.directional_lights) - 1)
+        elif isinstance(light, PointLight):
+            self.point_lights.append(light)
+            return "p_" + str(len(self.point_lights) - 1)
+        elif isinstance(light, SpotLight):
+            self.spot_lights.append(light)
+            return "s_" + str(len(self.spot_lights) - 1)
+        else:
+            raise ValueError("Invalid light type")
+
+    def remove_light(self, id: str):
+        """Removes a light from the scene
+
+        Args:
+            id (str): light ID
+
+        Raises:
+            IndexError: if light ID is invalid
+        """
+        if id.startswith("d_"):
+            idx = int(id[2:])
+            if idx >= len(self.directional_lights):
+                raise IndexError("Light ID out of range")
+            self.directional_lights.pop(idx)
+        elif id.startswith("p_"):
+            idx = int(id[2:])
+            if idx >= len(self.point_lights):
+                raise IndexError("Light ID out of range")
+            self.point_lights.pop(idx)
+        elif id.startswith("s_"):
+            idx = int(id[2:])
+            if idx >= len(self.spot_lights):
+                raise IndexError("Light ID out of range")
+            self.spot_lights.pop(idx)
+        else:
+            raise ValueError("Invalid light type")
+
     def render(
         self,
         camera_id: int,
         proj_type: Projection = Projection.PERSPECTIVE,
         debug=False,
     ):
-        """Render the scene
+        """Render a frame of the scene to the buffer
 
         Args:
             camera_id (int): ID of the camera to use for rendering
             proj_type (Projection, optional): Type of projection to use. Defaults to Projection.PERSPECTIVE.
         """
-        buf = self.display.build_empty_buffer()
+        buf = np.zeros((self.display.height, self.display.width))
+        h, w = buf.shape
         camera = self.camera[camera_id]
         view_matrix = camera.get_view_matrix()
         proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
@@ -146,15 +198,19 @@ class GraphicsEngine:
                 # Edge walking & scan conversion
                 # NOTE: this part can probably be optimized more
                 edge_points = []
-                edge_points += _bresenhams_line(v0[0], v1[0], v0[1], v1[1], buf)
-                edge_points += _bresenhams_line(v1[0], v2[0], v1[1], v2[1], buf)
-                edge_points += _bresenhams_line(v2[0], v0[0], v2[1], v0[1], buf)
+                edge_points += _bresenhams_line(v0[0], v1[0], v0[1], v1[1], w, h)
+                edge_points += _bresenhams_line(v1[0], v2[0], v1[1], v2[1], w, h)
+                edge_points += _bresenhams_line(v2[0], v0[0], v2[1], v0[1], w, h)
                 edge_points = list(set(edge_points))
 
-                _fill_span(edge_points, buf)
+                intensity = (
+                    self.directional_lights[-1].get_intensity(norms[i])
+                    if len(self.directional_lights) > 0
+                    else 1.0
+                )
 
-                self.display.update_buffer(buf)
-                self.display.render()
+                _fill_span(edge_points, buf, intensity)
+        self.display.update_buffer(buf)
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
         """Converts a model with points in NDC to screen coordinates (in-place)
@@ -172,11 +228,7 @@ class GraphicsEngine:
         m.v = screen_v
 
 
-def _bresenhams_line(
-    x0: int, x1: int, y0: int, y1: int, buf: np.ndarray, char: str = "@"
-):
-    h, w = buf.shape
-
+def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, w: int, h: int):
     points = []
     dx = abs(x1 - x0)
     sx = 1 if x0 < x1 else -1
@@ -188,8 +240,7 @@ def _bresenhams_line(
     points = []
     while True:
         if 0 <= x0 < w and 0 <= y0 < h:
-            buf[y0, x0] = char
-        points.append((x0, y0))
+            points.append((x0, y0))
 
         if x0 == x1 and y0 == y1:
             break
@@ -205,7 +256,9 @@ def _bresenhams_line(
     return points
 
 
-def _fill_span(edge_pts: List[Tuple[int, int]], buf: np.ndarray, char: str = "@"):
+def _fill_span(
+    edge_pts: List[Tuple[int, int]], buf: np.ndarray, intensity: float = 1.0
+):
     h, w = buf.shape
 
     scan_lines = defaultdict(list)
@@ -214,10 +267,10 @@ def _fill_span(edge_pts: List[Tuple[int, int]], buf: np.ndarray, char: str = "@"
 
     for y, x_pts in scan_lines.items():
         if len(x_pts) == 1:
-            buf[y, x_pts[0]] = char
+            buf[y, x_pts[0]] = intensity
         else:
             x_pts.sort()
             x_start, x_end = x_pts[0], x_pts[-1]
             for i in range(x_start, x_end + 1):
                 if 0 <= i < w and 0 <= y < h:
-                    buf[y, i] = char
+                    buf[y, i] = intensity
