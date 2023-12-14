@@ -49,7 +49,7 @@ class Model:
         """Compute normals for each face
 
         Returns:
-            (np.ndarray): matrix of normals for each face. Shape (n, 3) where n is the number of faces
+            (np.ndarray): Matrix of normals for each face. Shape (n, 3) where n is the number of faces
         """
         v0 = self.v[self.f[:, 0]][:, :-1]
         v1 = self.v[self.f[:, 1]][:, :-1]

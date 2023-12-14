@@ -34,8 +34,8 @@ class Vec3:
             other (Vec3 | np.ndarray): Other vector to add. Must be Vec3 or np.ndarray of shape (3,)
 
         Raises:
-            ValueError: if other is np.ndarray of wrong shape
-            TypeError: if other is not Vec3 or np.ndarray
+            ValueError: If other is np.ndarray of wrong shape
+            TypeError: If other is not Vec3 or np.ndarray
 
         Returns:
             (Vec3): Sum of vectors
@@ -79,7 +79,7 @@ class Vec3:
         """Normalize vector
 
         Returns:
-            (Vec3): returns self (normalized)
+            (Vec3): Returns self (normalized)
         """
         self.v = normalize(self.v)
         return self

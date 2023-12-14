@@ -13,52 +13,20 @@ from .util import Vec3
 
 
 class AxisScale(Enum):
+    """Enum for specifying axis scale"""
+
     LINEAR = "linear"
     LOG = "log"
 
 
-def plot_scatter(
-    model: Model,
-    c_pos: Vec3,
-    x_scale=AxisScale.LINEAR,
-    y_scale=AxisScale.LINEAR,
-    z_scale=AxisScale.LINEAR,
-):
-    """Uses matplotlib to plot a model and a camera in a 3D scatterplot. Used for debugging purposes.
+def plot_scene(model: Model, camera: Camera, title: str = "Scene"):
+    """Uses matplotlib to plot a model and a camera in a 3D scatterplot. Used for debugging purposes. Camera position is red, camera direction is blue, and camera up is green.
 
     Args:
-        model (Model): model to plot
-        c_pos (Vec3): camera position
-        x_scale (_type_, optional): x axis scale. Defaults to AxisScale.LINEAR.
-        y_scale (_type_, optional): y axis scale. Defaults to AxisScale.LINEAR.
-        z_scale (_type_, optional): z axis scale. Defaults to AxisScale.LINEAR.
+        model (Model): Model to plot
+        camera (Camera): Camera to plot
+        title (str, optional): Graph title. Defaults to "Scene".
     """
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-    x = model.v[:, 0]
-    y = model.v[:, 1]
-    z = model.v[:, 2]
-    ax.scatter(x, y, z)
-
-    ax.scatter(
-        c_pos.v[0],
-        c_pos.v[1],
-        c_pos.v[2],
-        c="red",
-        label="c_pos",
-    )
-
-    ax.set_xlabel("X Label")
-    ax.set_ylabel("Y Label")
-    ax.set_zlabel("Z Label")  # type: ignore
-
-    ax.set_xscale(x_scale.value)
-    ax.set_yscale(y_scale.value)
-    ax.set_zscale(z_scale.value)  # type: ignore
-    plt.show()
-
-
-def plot_scene(model: Model, camera: Camera, title: str = "Scene"):
     vertices = model.v[:, :-1]
 
     edges = set()
@@ -118,3 +86,9 @@ def plot_scene(model: Model, camera: Camera, title: str = "Scene"):
     # Show the plot
     plt.title(title)
     plt.show()
+
+
+def pixel_map(buf: np.ndarray, path: str = "pixel_map.png"):
+    plt.imshow(buf, cmap="gray", vmin=0, vmax=1)
+    plt.colorbar()
+    plt.savefig(path)

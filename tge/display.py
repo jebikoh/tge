@@ -9,11 +9,17 @@ CHAR_SET = [" ", ".", ",", "-", "~", ":", ";", "=", "!", "*", "#", "$", "@"]
 
 
 def get_terminal_size():
+    """Get the size of the terminal
+
+    Returns:
+        (int, int): width and height of the terminal
+    """
     height, width = os.popen("stty size", "r").read().split()
     return int(width), int(height)
 
 
 def clear():
+    """Clear the terminal"""
     _write(f"{CLEAR}{HOME}")
     _flush()
 
@@ -33,15 +39,16 @@ class Display:
         """Initialize the display
 
         Args:
-            width (int, optional): width of display. Defaults to 25.
-            height (int, optional): height of display. Defaults to 25.
-            hspace (int, optional): space between dispaly rows. Defaults to 2.
+            width (int, optional): Width of display. Defaults to 25.
+            height (int, optional): Height of display. Defaults to 25.
+            hspace (int, optional): Space between dispaly rows. Defaults to 2.
         """
         self.width = width
         self.height = height
         self.hspace = hspace
         self.buf = np.full((height, width), "@", dtype="<U1")
         self.start_row, self.start_col = self._calculate_start_pos()
+        self.debug_buf = None
         signal.signal(signal.SIGWINCH, self._handle_resize)
 
     def _calculate_start_pos(self):
@@ -61,19 +68,22 @@ class Display:
     def _handle_resize(self, signum, frame):
         self.start_row, self.start_col = self._calculate_start_pos()
 
-    def update_buffer(self, r: np.ndarray):
+    def update_buffer(self, r: np.ndarray, debug=False):
         """Converts render output to a character-based buffer and updates frame buffer
 
         Args:
-            new_buf (np.ndarray): render output
+            new_buf (np.ndarray): Render output
+            debug (bool): Whether to save the render output to the debug buffer
 
         Raises:
-            ValueError: if the shape of new_buf does not match the shape of the current buffer
+            ValueError: If the shape of new_buf does not match the shape of the current buffer
         """
         if r.shape != self.buf.shape:
             raise ValueError(
                 f"Render output shape {r.shape} does not match buffer shape {self.buf.shape}"
             )
+        if debug:
+            self.debug_buf = r
         r_i = np.round(r * (len(CHAR_SET) - 1)).astype(int)
         self.buf = np.array(CHAR_SET)[r_i]
 

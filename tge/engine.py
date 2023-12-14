@@ -6,7 +6,7 @@ from .model import Model, apply_transform
 from .camera import Camera, Projection
 from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
-from .debug import plot_scatter, plot_scene
+from .debug import plot_scene
 
 ORIGIN = Vec3(0, 0, 0)
 
@@ -37,7 +37,7 @@ class GraphicsEngine:
             model (Model): Model to add
 
         Returns:
-            (int): model ID
+            (int): Model ID
         """
         self.models.append(model)
         return len(self.models) - 1
@@ -46,7 +46,7 @@ class GraphicsEngine:
         """Removes a model from the scene
 
         Args:
-            id (int): model ID
+            id (int): Model ID
         """
         self.models.pop(id)
 
@@ -74,7 +74,7 @@ class GraphicsEngine:
             camera (Camera): Camera to add
 
         Returns:
-            (int): camera ID
+            (int): Camera ID
         """
         self.camera.append(camera)
         return len(self.camera) - 1
@@ -83,10 +83,10 @@ class GraphicsEngine:
         """Removes a camera from the scene
 
         Args:
-            id (int): camera ID
+            id (int): Camera ID
 
         Raises:
-            IndexError: if camera ID is invalid
+            IndexError: If camera ID is invalid
         """
         if id >= len(self.camera):
             raise IndexError("Camera ID out of range")
@@ -99,7 +99,7 @@ class GraphicsEngine:
             light (DirectionalLight | PointLight | SpotLight): Light to add
 
         Returns:
-            (int): light ID
+            (int): Light ID
         """
         if isinstance(light, DirectionalLight):
             self.directional_lights.append(light)
@@ -117,10 +117,10 @@ class GraphicsEngine:
         """Removes a light from the scene
 
         Args:
-            id (str): light ID
+            id (str): Light ID
 
         Raises:
-            IndexError: if light ID is invalid
+            IndexError: If light ID is invalid
         """
         if id.startswith("d_"):
             idx = int(id[2:])
@@ -198,10 +198,6 @@ class GraphicsEngine:
                     title="Projection Matrix",
                 )
 
-            # if debug:
-            #     print("Transformed model:\n" + str(m.v))
-            #     plot_scene(m, ORIGIN, title="Transformed scene")
-
             # Skipping clipping for now; add later if needed
             # Perspective Division
             m.v = m.v / m.v[:, 3].reshape(-1, 1)
@@ -253,13 +249,13 @@ class GraphicsEngine:
                 )
 
                 _fill_span(edge_points, buf, intensity)
-        self.display.update_buffer(buf)
+        self.display.update_buffer(buf, debug=True)
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
         """Converts a model with points in NDC to screen coordinates (in-place)
 
         Args:
-            m (Model): model to convert
+            m (Model): Model to convert
         """
         screen_v = (m.v + 1) / 2
         screen_v[:, 0] *= self.display.width
@@ -271,7 +267,20 @@ class GraphicsEngine:
         m.v = screen_v
 
 
-def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, w: int, h: int):
+def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, w: int, h: int) -> List[tuple]:
+    """A Bresenham's line algorithm implementation
+
+    Args:
+        x0 (int): X-coordinate of the first point
+        x1 (int): X-coordinate of the second point
+        y0 (int): Y-coordinate of the first point
+        y1 (int): Y-coordinate of the second point
+        w (int): Width of the buffer
+        h (int): Height of the buffer
+
+    Returns:
+        (List[tuple]): List of points connecting the two points
+    """
     points = []
     dx = abs(x1 - x0)
     sx = 1 if x0 < x1 else -1
@@ -302,6 +311,13 @@ def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, w: int, h: int):
 def _fill_span(
     edge_pts: List[Tuple[int, int]], buf: np.ndarray, intensity: float = 1.0
 ):
+    """A span fill algorithm implementation
+
+    Args:
+        edge_pts (List[Tuple[int, int]]): A list of all edge points
+        buf (np.ndarray): Buffer to fill
+        intensity (float, optional): Intensity to fill. Defaults to 1.0.
+    """
     h, w = buf.shape
 
     scan_lines = defaultdict(list)
