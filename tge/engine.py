@@ -228,7 +228,7 @@ class GraphicsEngine:
             for i, face in enumerate(m.f):
                 view = camera.dir.v
                 # Back-face culling
-                if np.dot(norms[i], view) > 0:
+                if np.dot(norms[i], view) >= 0:
                     if debug:
                         print(f"Culled face {i}")
                     continue

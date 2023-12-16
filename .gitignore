@@ -1,6 +1,7 @@
 .vscode/
 site/
 pixel_map.png
+debug/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
