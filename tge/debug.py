@@ -90,5 +90,4 @@ def plot_scene(model: Model, camera: Camera, title: str = "Scene"):
 
 def pixel_map(buf: np.ndarray, path: str = "pixel_map.png"):
     plt.imshow(buf, cmap="gray", vmin=0, vmax=1)
-    plt.colorbar()
     plt.savefig(path)
