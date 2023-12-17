@@ -6,7 +6,7 @@ from .model import Model, apply_transform
 from .camera import Camera, Projection
 from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
-from .debug import plot_scene
+from .debug import plot_scene, pixel_map
 
 ORIGIN = Vec3(0, 0, 0)
 
@@ -153,6 +153,7 @@ class GraphicsEngine:
             proj_type (Projection, optional): Type of projection to use. Defaults to Projection.PERSPECTIVE.
         """
         buf = np.zeros((self.display.height, self.display.width))
+        zbuf = np.full((self.display.height, self.display.width), -np.inf)
         h, w = buf.shape
         camera = self.camera[camera_id]
         view_matrix = camera.get_view_matrix()
@@ -218,7 +219,8 @@ class GraphicsEngine:
 
             # Convert NDC to screen (in-place)
             self._ndc_to_screen(m, inv_y=True)
-            m.round_vertices()
+            v = m.round_xy()
+            z = m.get_z()
 
             # Rasterization
             norms = model.n
@@ -232,14 +234,16 @@ class GraphicsEngine:
                     if debug:
                         print(f"Culled face {i}")
                     continue
-                v0, v1, v2 = m.v[face]
+                v0, v1, v2 = v[face]
+                z0, z1, z2 = z[face]
+                # print(f"Face {i} z-val: {z0}, {z1}, {z2}")
 
                 # Edge walking & scan conversion
                 # NOTE: this part can probably be optimized more
                 edge_points = []
-                edge_points += _bresenhams_line(v0[0], v1[0], v0[1], v1[1], w, h)
-                edge_points += _bresenhams_line(v1[0], v2[0], v1[1], v2[1], w, h)
-                edge_points += _bresenhams_line(v2[0], v0[0], v2[1], v0[1], w, h)
+                edge_points += _bresenhams_line(v0, v1, z0, z1, w, h)
+                edge_points += _bresenhams_line(v1, v2, z1, z2, w, h)
+                edge_points += _bresenhams_line(v2, v0, z2, z0, w, h)
                 edge_points = list(set(edge_points))
 
                 intensity = (
@@ -248,7 +252,8 @@ class GraphicsEngine:
                     else 1.0
                 )
 
-                _fill_span(edge_points, buf, intensity)
+                _fill_span(edge_points, buf, zbuf, intensity)
+                # pixel_map(buf, path=f"debug/face_{i}.png")
         self.display.update_buffer(buf, debug=True)
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
@@ -267,32 +272,39 @@ class GraphicsEngine:
         m.v = screen_v
 
 
-def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, w: int, h: int) -> List[tuple]:
+def _bresenhams_line(
+    v0: np.ndarray, v1: np.ndarray, z0: float, z1: float, w: int, h: int
+) -> List[tuple]:
     """A Bresenham's line algorithm implementation
 
     Args:
-        x0 (int): X-coordinate of the first point
-        x1 (int): X-coordinate of the second point
-        y0 (int): Y-coordinate of the first point
-        y1 (int): Y-coordinate of the second point
+        v0 (np.ndarray): Starting point (x, y)
+        v1 (np.ndarray): Ending point (x, y)
+        z0 (float): v0 z-value
+        z1 (float): v1 z-value
         w (int): Width of the buffer
         h (int): Height of the buffer
 
     Returns:
         (List[tuple]): List of points connecting the two points
     """
-    points = []
+    x0, y0 = v0
+    x1, y1 = v1
+
     dx = abs(x1 - x0)
     sx = 1 if x0 < x1 else -1
     dy = -abs(y1 - y0)
     sy = 1 if y0 < y1 else -1
 
+    zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
+
     e = dx + dy
 
     points = []
+    t = 0
     while True:
         if 0 <= x0 < w and 0 <= y0 < h:
-            points.append((x0, y0))
+            points.append((x0, y0, zs[t]))
 
         if x0 == x1 and y0 == y1:
             break
@@ -305,31 +317,43 @@ def _bresenhams_line(x0: int, x1: int, y0: int, y1: int, w: int, h: int) -> List
             e += dx
             y0 += sy
 
+        t += 1
+
     return points
 
 
 def _fill_span(
-    edge_pts: List[Tuple[int, int]], buf: np.ndarray, intensity: float = 1.0
+    edge_pts: List[Tuple[int, int]],
+    buf: np.ndarray,
+    zbuf: np.ndarray,
+    intensity: float = 1.0,
 ):
     """A span fill algorithm implementation
 
     Args:
         edge_pts (List[Tuple[int, int]]): A list of all edge points
         buf (np.ndarray): Buffer to fill
+        zbuf (np.ndarray): z-buffer
         intensity (float, optional): Intensity to fill. Defaults to 1.0.
     """
     h, w = buf.shape
 
     scan_lines = defaultdict(list)
-    for x, y in edge_pts:
-        scan_lines[y].append(x)
+    for x, y, z in edge_pts:
+        scan_lines[y].append((x, z))
 
-    for y, x_pts in scan_lines.items():
-        if len(x_pts) == 1:
-            buf[y, x_pts[0]] = intensity
+    for y, pts in scan_lines.items():
+        if len(pts) == 1:
+            x, z = pts[0]
+            if 0 <= x < w and 0 <= y < h and z > zbuf[y, x]:
+                buf[y, x] = intensity
+                zbuf[y, x] = z
         else:
-            x_pts.sort()
-            x_start, x_end = x_pts[0], x_pts[-1]
-            for i in range(x_start, x_end + 1):
-                if 0 <= i < w and 0 <= y < h:
+            pts.sort(key=lambda x: x[0])
+            x0, z0 = pts[0]
+            x1, z1 = pts[-1]
+            zs = np.linspace(z0, z1, x1 - x0 + 1)
+            for i in range(x0, x1 + 1):
+                if 0 <= i < w and 0 <= y < h and zs[i - x0] > zbuf[y, i]:
                     buf[y, i] = intensity
+                    zbuf[y, i] = zs[i - x0]

@@ -61,9 +61,17 @@ class Model:
 
         return normals
 
-    def round_vertices(self):
-        """Round vertices to nearest integer"""
-        self.v = np.rint(self.v).astype(int)
+    def round_xy(self) -> np.ndarray:
+        """Round the x and y coordinates of the vertices to the nearest integer
+
+        Returns:
+            np.ndarray: Rounded vertices
+        """
+        return np.rint(self.v[:, :2]).astype(int)
+
+    def get_z(self):
+        """Get z coordinates"""
+        return self.v[:, 2]
 
 
 def apply_transform(model: Model, t: np.ndarray, compute_norms: bool = True) -> Model:
