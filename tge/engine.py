@@ -240,11 +240,22 @@ class GraphicsEngine:
 
                 # Edge walking & scan conversion
                 # NOTE: this part can probably be optimized more
-                edge_points = []
-                edge_points += _bresenhams_line(v0, v1, z0, z1, w, h)
-                edge_points += _bresenhams_line(v1, v2, z1, z2, w, h)
-                edge_points += _bresenhams_line(v2, v0, z2, z0, w, h)
-                edge_points = list(set(edge_points))
+                edge_pts = []
+
+                pts, zs = _bresenhams_line(v0, v1, z0, z1, w, h)
+                edge_pts += pts
+                edge_zs = zs
+
+                pts, zs = _bresenhams_line(v1, v2, z1, z2, w, h)
+                edge_pts += pts
+                edge_zs = np.concatenate((edge_zs, zs))
+
+                pts, zs = _bresenhams_line(v2, v0, z2, z0, w, h)
+                edge_pts += pts
+                edge_zs = np.concatenate((edge_zs, zs))
+
+                edge_pts, u_i = np.unique(np.array(edge_pts), axis=0, return_index=True)
+                edge_zs = edge_zs[u_i]
 
                 intensity = (
                     self.directional_lights[-1].compute_intensity(norms[i])
@@ -252,8 +263,7 @@ class GraphicsEngine:
                     else 1.0
                 )
 
-                _fill_span(edge_points, buf, zbuf, intensity)
-                # pixel_map(buf, path=f"debug/face_{i}.png")
+                _fill_span(edge_pts, edge_zs, buf, zbuf, intensity)
         self.display.update_buffer(buf, debug=True)
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
@@ -296,15 +306,14 @@ def _bresenhams_line(
     dy = -abs(y1 - y0)
     sy = 1 if y0 < y1 else -1
 
-    zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
-
     e = dx + dy
 
-    points = []
+    zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
+    pts = []
     t = 0
     while True:
         if 0 <= x0 < w and 0 <= y0 < h:
-            points.append((x0, y0, zs[t]))
+            pts.append((x0, y0))
 
         if x0 == x1 and y0 == y1:
             break
@@ -319,7 +328,7 @@ def _bresenhams_line(
 
         t += 1
 
-    return points
+    return pts, zs
 
 
 def _fill_span(
@@ -357,3 +366,36 @@ def _fill_span(
                 if 0 <= i < w and 0 <= y < h and zs[i - x0] > zbuf[y, i]:
                     buf[y, i] = intensity
                     zbuf[y, i] = zs[i - x0]
+
+
+def _fill_span(
+    edge_pts: np.ndarray,
+    z_vals: np.ndarray,
+    buf: np.ndarray,
+    zbuf: np.ndarray,
+    intensity: float = 1.0,
+):
+    h, w = buf.shape
+
+    for y in np.unique(edge_pts[:, 1]):
+        y_ind = edge_pts[:, 1] == y
+        pts = edge_pts[y_ind]
+        sort_ind = pts[:, 0].argsort()
+        pts = pts[sort_ind]
+
+        zs = z_vals[y_ind][sort_ind]
+
+        if len(pts) == 1:
+            x, z = pts[0][0], zs[0]
+            if 0 <= x < w and 0 <= y < h and z > zbuf[y, x]:
+                buf[y, x] = intensity
+                zbuf[y, x] = z
+        else:
+            x0, x1 = pts[0, 0], pts[-1, 0]
+            xs = np.arange(x0, x1 + 1)
+            z0, z1 = zs[0], zs[-1]
+            zspace = np.linspace(z0, z1, x1 - x0 + 1)
+
+            mask = (0 <= xs) & (xs < w) & (zspace > zbuf[y, xs])
+            buf[y, xs[mask]] = intensity
+            zbuf[y, xs[mask]] = zspace[mask]
