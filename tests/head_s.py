@@ -4,6 +4,8 @@ from tge.camera import Camera, Projection
 from tge.util import Vec3, build_rotation_deg, build_scale, Axis
 from tge.lights import DirectionalLight
 from tge.display import clear
+from tge.debug import pixel_map
+from .util import clear_dir
 import time
 import numpy as np
 
@@ -11,8 +13,8 @@ if __name__ == "__main__":
     engine = GraphicsEngine((100, 50))
 
     # Models
-    cube = load_model("tests/models/monkey.obj")
-    cube.apply_transform(build_scale(10, 10, 10))
+    cube = load_model("tests/models/head.obj")
+    cube.apply_transform(build_scale(15, 15, 15))
     cube.apply_transform(build_rotation_deg(-45, Axis.Y))
     engine.add_model(cube)
 
