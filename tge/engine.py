@@ -332,43 +332,6 @@ def _bresenhams_line(
 
 
 def _fill_span(
-    edge_pts: List[Tuple[int, int]],
-    buf: np.ndarray,
-    zbuf: np.ndarray,
-    intensity: float = 1.0,
-):
-    """A span fill algorithm implementation
-
-    Args:
-        edge_pts (List[Tuple[int, int]]): A list of all edge points
-        buf (np.ndarray): Buffer to fill
-        zbuf (np.ndarray): z-buffer
-        intensity (float, optional): Intensity to fill. Defaults to 1.0.
-    """
-    h, w = buf.shape
-
-    scan_lines = defaultdict(list)
-    for x, y, z in edge_pts:
-        scan_lines[y].append((x, z))
-
-    for y, pts in scan_lines.items():
-        if len(pts) == 1:
-            x, z = pts[0]
-            if 0 <= x < w and 0 <= y < h and z > zbuf[y, x]:
-                buf[y, x] = intensity
-                zbuf[y, x] = z
-        else:
-            pts.sort(key=lambda x: x[0])
-            x0, z0 = pts[0]
-            x1, z1 = pts[-1]
-            zs = np.linspace(z0, z1, x1 - x0 + 1)
-            for i in range(x0, x1 + 1):
-                if 0 <= i < w and 0 <= y < h and zs[i - x0] > zbuf[y, i]:
-                    buf[y, i] = intensity
-                    zbuf[y, i] = zs[i - x0]
-
-
-def _fill_span(
     edge_pts: np.ndarray,
     z_vals: np.ndarray,
     buf: np.ndarray,
