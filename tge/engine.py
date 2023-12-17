@@ -1,12 +1,10 @@
-from typing import List, Tuple
-from collections import defaultdict
+from typing import List
 import numpy as np
 from .display import Display
 from .model import Model, apply_transform
 from .camera import Camera, Projection
 from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
-from .debug import plot_scene, pixel_map
 
 ORIGIN = Vec3(0, 0, 0)
 
@@ -140,12 +138,7 @@ class GraphicsEngine:
         else:
             raise ValueError("Invalid light type")
 
-    def render(
-        self,
-        camera_id: int,
-        proj_type: Projection = Projection.PERSPECTIVE,
-        debug=False,
-    ):
+    def render(self, camera_id: int, proj_type: Projection = Projection.PERSPECTIVE):
         """Render a frame of the scene to the buffer
 
         Args:
@@ -159,63 +152,12 @@ class GraphicsEngine:
         view_matrix = camera.get_view_matrix()
         proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
         t = proj_matrix @ view_matrix
-        if debug:
-            print("View Matrix:\n" + str(view_matrix))
-            print("Projection Matrix:\n" + str(proj_matrix))
-            print("Transform Matrix:\n" + str(t))
 
         for model in self.models:
-            if debug:
-                print("Original model:\n" + str(model.v))
-                plot_scene(model, camera, title="Original scene")
-            m = apply_transform(model, view_matrix, compute_norms=False)
-            if debug:
-                print("View matrix model:\n" + str(m.v))
-                plot_scene(
-                    m,
-                    Camera(
-                        ORIGIN,
-                        camera.dir,
-                        camera.up,
-                        camera.fov,
-                        camera.near,
-                        camera.far,
-                    ),
-                    title="View Matrix",
-                )
-            m.apply_transform(proj_matrix)
-            if debug:
-                print("Projection matrix model:\n" + str(m.v))
-                plot_scene(
-                    m,
-                    Camera(
-                        ORIGIN,
-                        camera.dir,
-                        camera.up,
-                        camera.fov,
-                        camera.near,
-                        camera.far,
-                    ),
-                    title="Projection Matrix",
-                )
-
+            m = apply_transform(model, t)
             # Skipping clipping for now; add later if needed
             # Perspective Division
             m.v = m.v / m.v[:, 3].reshape(-1, 1)
-            if debug:
-                print("NDC:\n" + str(m.v))
-                plot_scene(
-                    m,
-                    Camera(
-                        ORIGIN,
-                        camera.dir,
-                        camera.up,
-                        camera.fov,
-                        camera.near,
-                        camera.far,
-                    ),
-                    title="Screen space",
-                )
 
             # Convert NDC to screen (in-place)
             self._ndc_to_screen(m, inv_y=True)
@@ -231,12 +173,9 @@ class GraphicsEngine:
                 view = camera.dir.v
                 # Back-face culling
                 if np.dot(norms[i], view) >= 0:
-                    if debug:
-                        print(f"Culled face {i}")
                     continue
                 v0, v1, v2 = v[face]
                 z0, z1, z2 = z[face]
-                # print(f"Face {i} z-val: {z0}, {z1}, {z2}")
 
                 # Edge walking & scan conversion
                 # NOTE: this part can probably be optimized more
