@@ -22,10 +22,10 @@ class GraphicsEngine:
         self.display = Display(resolution[0], resolution[1])
         self.aspect_ratio = resolution[0] / resolution[1]
         self.ups = ups
-        self.models = []
-        self.directional_lights = []
-        self.point_lights = []
-        self.spot_lights = []
+        self.models: List[Model] = []
+        self.directional_lights: List[DirectionalLight] = []
+        self.point_lights: List[PointLight] = []
+        self.spot_lights: List[SpotLight] = []
         self.camera = []
 
     def add_model(self, model: Model) -> int:
@@ -196,11 +196,12 @@ class GraphicsEngine:
                 edge_pts, u_i = np.unique(np.array(edge_pts), axis=0, return_index=True)
                 edge_zs = edge_zs[u_i]
 
-                intensity = (
-                    self.directional_lights[-1].compute_intensity(norms[i])
-                    if len(self.directional_lights) > 0
-                    else 1.0
-                )
+                intensity = 1.0
+                if len(self.directional_lights) > 0:
+                    intensity = 0.0
+                    for light in self.directional_lights:
+                        intensity += light.compute_intensity(norms[i])
+                    intensity /= len(self.directional_lights)
 
                 _fill_span(edge_pts, edge_zs, buf, zbuf, intensity)
         self.display.update_buffer(buf, debug=True)
