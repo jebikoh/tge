@@ -11,5 +11,7 @@ When running tests, run from root directory (e.g. `python -m tests.test`)
 The main rendering pipeline (for perspective projection) is done and working. Things left to do are:
 
 -   Optimize scan conversion (slowest part)
+-   Add caching
 -   Add animation manager
 -   Clean up tests
+-   Add additional lights, etc
