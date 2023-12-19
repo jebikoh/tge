@@ -30,11 +30,14 @@ if __name__ == "__main__":
     engine.add_light(DirectionalLight(Vec3(0, 0, -1)))
 
     # Action
+    start = time.time()
     engine.render(0, Projection.PERSPECTIVE)
-    try:
-        while True:
-            engine.display.render_buffer()
-            time.sleep(1)
-    except KeyboardInterrupt:
-        clear()
-        print("Test terminated.")
+    end = time.time()
+    print(f"Render time: {end - start:.4f} seconds")
+    # try:
+    #     while True:
+    #         engine.display.render_buffer()
+    #         time.sleep(1)
+    # except KeyboardInterrupt:
+    #     clear()
+    #     print("Test terminated.")
