@@ -25,11 +25,11 @@ if __name__ == "__main__":
 
     engine.add_light(DirectionalLight(Vec3(0, 0, -1)))
 
-    engine.render(0, Projection.PERSPECTIVE, debug=False)
-    try:
-        while True:
-            engine.display.render_buffer()
-            time.sleep(1)
-    except KeyboardInterrupt:
-        clear()
-        print("Test terminated.")
+    engine.render(0, Projection.PERSPECTIVE)
+    # try:
+    #     while True:
+    #         engine.display.render_buffer()
+    #         time.sleep(1)
+    # except KeyboardInterrupt:
+    #     clear()
+    #     print("Test terminated.")

@@ -27,6 +27,11 @@ class GraphicsEngine:
         self.point_lights: List[PointLight] = []
         self.spot_lights: List[SpotLight] = []
         self.camera = []
+        self._mlen = int(
+            (resolution[0] ** 2 + resolution[1] ** 2) ** 0.5
+            + resolution[0]
+            + resolution[1]
+        )
 
     def add_model(self, model: Model) -> int:
         """Add a model to the scene
@@ -177,8 +182,24 @@ class GraphicsEngine:
                 v0, v1, v2 = v[face]
                 z0, z1, z2 = z[face]
 
+                # Skip this face if all vertices are obscured
+                if (
+                    z0 < zbuf[v0[1], v0[0]]
+                    and z1 < zbuf[v1[1], v1[0]]
+                    and z2 < zbuf[v2[1], v2[0]]
+                ):
+                    continue
+
                 # Edge walking & scan conversion
                 # NOTE: this part can probably be optimized more
+                # edge_set = set()
+                # edge_pts = np.zeros((self._mlen, 2), dtype=int)
+                # edge_zs = np.zeros(self._mlen)
+
+                # j = _bresenhams_line_opt(
+                #     v0, v1, z0, z1, w, h, edge_set, edge_pts, edge_zs, 0
+                # )
+
                 edge_pts = []
 
                 pts, zs = _bresenhams_line(v0, v1, z0, z1, w, h)
@@ -195,6 +216,9 @@ class GraphicsEngine:
 
                 edge_pts, u_i = np.unique(np.array(edge_pts), axis=0, return_index=True)
                 edge_zs = edge_zs[u_i]
+
+                # edge_pts = edge_pts[0:j]
+                # edge_zs = edge_zs[0:j]
 
                 intensity = 1.0
                 if len(self.directional_lights) > 0:
@@ -249,6 +273,7 @@ def _bresenhams_line(
     e = dx + dy
 
     zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
+
     pts = []
     t = 0
     while True:
@@ -267,8 +292,52 @@ def _bresenhams_line(
             y0 += sy
 
         t += 1
-
     return pts, zs
+
+
+def _bresenhams_line_opt(
+    v0: np.ndarray,
+    v1: np.ndarray,
+    z0: float,
+    z1: float,
+    w: int,
+    h: int,
+    edge_set: set,
+    edge_pts: np.ndarray,
+    edge_zs: np.ndarray,
+    i: int,
+):
+    x0, y0 = v0
+    x1, y1 = v1
+
+    dx = abs(x1 - x0)
+    dy = -abs(y1 - y0)
+    sx = 1 if x0 < x1 else -1
+    sy = 1 if y0 < y1 else -1
+
+    zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
+    end_i = i + len(zs)
+    edge_zs[i:end_i] = zs
+
+    e = dx + dy
+    while True:
+        if 0 <= x0 < w and 0 <= y0 < h and (x0, y0) not in edge_set:
+            edge_set.add((x0, y0))
+            edge_pts[i] = (x0, y0)
+            i += 1
+
+        if x0 == x1 and y0 == y1:
+            break
+
+        e2 = 2 * e
+        if e2 >= dy:
+            e += dy
+            x0 += sx
+        if e2 <= dx:
+            e += dx
+            y0 += sy
+    assert i == end_i
+    return end_i
 
 
 def _fill_span(

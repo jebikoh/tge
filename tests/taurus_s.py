@@ -27,7 +27,7 @@ if __name__ == "__main__":
     engine.add_light(DirectionalLight(Vec3(0, 0, -1)))
 
     # Action
-    engine.render(0, Projection.PERSPECTIVE, debug=False)
+    engine.render(0, Projection.PERSPECTIVE)
     try:
         while True:
             engine.display.render_buffer()
