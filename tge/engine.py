@@ -6,6 +6,8 @@ from .camera import Camera, Projection
 from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
 
+import time
+
 ORIGIN = Vec3(0, 0, 0)
 
 
@@ -169,6 +171,8 @@ class GraphicsEngine:
             v = m.round_xy()
             z = m.get_z()
 
+            ew_time = 0
+
             # Rasterization
             norms = model.n
             # Ideally, this should never happen
@@ -191,34 +195,22 @@ class GraphicsEngine:
                     continue
 
                 # Edge walking & scan conversion
-                # NOTE: this part can probably be optimized more
-                # edge_set = set()
-                # edge_pts = np.zeros((self._mlen, 2), dtype=int)
-                # edge_zs = np.zeros(self._mlen)
+                edge_set = set()
+                edge_pts = np.zeros((self._mlen, 2), dtype=int)
+                edge_zs = np.zeros(self._mlen)
 
-                # j = _bresenhams_line_opt(
-                #     v0, v1, z0, z1, w, h, edge_set, edge_pts, edge_zs, 0
-                # )
+                j = _bresenhams_line(
+                    v0, v1, z0, z1, w, h, edge_set, edge_pts, edge_zs, 0
+                )
+                j = _bresenhams_line(
+                    v1, v2, z1, z2, w, h, edge_set, edge_pts, edge_zs, j
+                )
+                j = _bresenhams_line(
+                    v2, v0, z2, z0, w, h, edge_set, edge_pts, edge_zs, j
+                )
 
-                edge_pts = []
-
-                pts, zs = _bresenhams_line(v0, v1, z0, z1, w, h)
-                edge_pts += pts
-                edge_zs = zs
-
-                pts, zs = _bresenhams_line(v1, v2, z1, z2, w, h)
-                edge_pts += pts
-                edge_zs = np.concatenate((edge_zs, zs))
-
-                pts, zs = _bresenhams_line(v2, v0, z2, z0, w, h)
-                edge_pts += pts
-                edge_zs = np.concatenate((edge_zs, zs))
-
-                edge_pts, u_i = np.unique(np.array(edge_pts), axis=0, return_index=True)
-                edge_zs = edge_zs[u_i]
-
-                # edge_pts = edge_pts[0:j]
-                # edge_zs = edge_zs[0:j]
+                edge_pts = edge_pts[0:j]
+                edge_zs = edge_zs[0:j]
 
                 intensity = 1.0
                 if len(self.directional_lights) > 0:
@@ -247,55 +239,6 @@ class GraphicsEngine:
 
 
 def _bresenhams_line(
-    v0: np.ndarray, v1: np.ndarray, z0: float, z1: float, w: int, h: int
-) -> List[tuple]:
-    """A Bresenham's line algorithm implementation
-
-    Args:
-        v0 (np.ndarray): Starting point (x, y)
-        v1 (np.ndarray): Ending point (x, y)
-        z0 (float): v0 z-value
-        z1 (float): v1 z-value
-        w (int): Width of the buffer
-        h (int): Height of the buffer
-
-    Returns:
-        (List[tuple]): List of points connecting the two points
-    """
-    x0, y0 = v0
-    x1, y1 = v1
-
-    dx = abs(x1 - x0)
-    sx = 1 if x0 < x1 else -1
-    dy = -abs(y1 - y0)
-    sy = 1 if y0 < y1 else -1
-
-    e = dx + dy
-
-    zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
-
-    pts = []
-    t = 0
-    while True:
-        if 0 <= x0 < w and 0 <= y0 < h:
-            pts.append((x0, y0))
-
-        if x0 == x1 and y0 == y1:
-            break
-
-        e2 = 2 * e
-        if e2 >= dy:
-            e += dy
-            x0 += sx
-        if e2 <= dx:
-            e += dx
-            y0 += sy
-
-        t += 1
-    return pts, zs
-
-
-def _bresenhams_line_opt(
     v0: np.ndarray,
     v1: np.ndarray,
     z0: float,
@@ -316,14 +259,15 @@ def _bresenhams_line_opt(
     sy = 1 if y0 < y1 else -1
 
     zs = np.linspace(z0, z1, max(dx, abs(dy)) + 1)
-    end_i = i + len(zs)
-    edge_zs[i:end_i] = zs
+    z_i = 0
+    edge_zs[i : i + len(zs)] = zs
 
     e = dx + dy
     while True:
         if 0 <= x0 < w and 0 <= y0 < h and (x0, y0) not in edge_set:
             edge_set.add((x0, y0))
             edge_pts[i] = (x0, y0)
+            edge_zs[i] = zs[z_i]
             i += 1
 
         if x0 == x1 and y0 == y1:
@@ -336,8 +280,8 @@ def _bresenhams_line_opt(
         if e2 <= dx:
             e += dx
             y0 += sy
-    assert i == end_i
-    return end_i
+        z_i += 1
+    return i
 
 
 def _fill_span(
