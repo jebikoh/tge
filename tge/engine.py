@@ -5,7 +5,6 @@ from .model import Model, apply_transform
 from .camera import Camera, Projection
 from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
-import time
 
 import time
 
@@ -161,9 +160,6 @@ class GraphicsEngine:
         proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
         t = proj_matrix @ view_matrix
 
-        edge_walking = 0
-        span_fill = 0
-
         for model in self.models:
             m = apply_transform(model, t)
             # Skipping clipping for now; add later if needed
@@ -222,6 +218,7 @@ class GraphicsEngine:
                     for light in self.directional_lights:
                         intensity += light.compute_intensity(norms[i])
                     intensity /= len(self.directional_lights)
+
                 _fill_span(edge_pts, edge_zs, buf, zbuf, intensity)
         self.display.update_buffer(buf, debug=True)
 
