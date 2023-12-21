@@ -15,4 +15,8 @@ The main rendering pipeline (for perspective projection) is done and working. Th
 
 ## Command line tests
 
-Parameterized tests can be found in the `tests` directory and sample models in `tests/models`. You can run tests via via `python -m tests.<test_name> <path_to_model> <options>`. Argument information can be found with `python -m tests.<test_name> -h`.
+Parameterized tests can be found in the `tests` directory and sample models in `tests/models`. You can run tests from the root directory via:
+ - `python -m tests.<test_name> <path_to_model> <options>`
+
+Argument information can be found with:
+ - `python -m tests.<test_name> -h`.
