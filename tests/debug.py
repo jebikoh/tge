@@ -13,7 +13,7 @@ def debug():
     HEIGHT = 50
 
     MODEL_PATH = "tests/models/cube.obj"
-    SCALE = 5.0
+    SCALE = 10.0
     RX = 25.0
     RY = 45.0
     RZ = 45.0
@@ -43,7 +43,10 @@ def debug():
     engine.add_light(DirectionalLight(Vec3(0, 0, -1)))
 
     # Action
+    start = time.time()
     engine.render(0, Projection.PERSPECTIVE)
+    end = time.time()
+    print("Render time: ", end - start)
     # try:
     #     while True:
     #         engine.display.render_buffer()

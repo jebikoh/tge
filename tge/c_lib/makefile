@@ -2,13 +2,13 @@ CC=gcc
 
 # Flags
 PYTHON_CFLAGS := $(shell python3-config --cflags)
-PYTHON_LDFLAGS := $(shell python3-config --ldflags)
+PYTHON_LDFLAGS := $(shell python3-config --ldflags) -lpython3.12
 CFLAGS=-Wall -Werror -fPIC $(PYTHON_CFLAGS)
 LDFLAGS=$(PYTHON_LDFLAGS)
 
 
 # INCLUDES
-NUMPY_INCLUDE=$(shell python -c "import numpy; print(numpy.get_include())")
+NUMPY_INCLUDE=$(shell python3 -c "import numpy; print(numpy.get_include())")
 
 
 # Directories
