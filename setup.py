@@ -10,7 +10,7 @@ numpy_include = numpy.get_include()
 
 # Define the extension module
 tgec_module = Extension(
-    "tgec",
+    "tge.tgec",
     sources=["tgec/src/edge_walk.c"],
     include_dirs=[numpy_include],
     extra_compile_args=["-Wall", "-Werror", "-fPIC"] + python_cflags,

@@ -202,7 +202,8 @@ class GraphicsEngine:
                 edge_pts = np.zeros((self._mlen, 2), dtype=np.int64)
                 edge_zs = np.zeros(self._mlen, dtype=np.float64)
 
-                j = tgec.edge_walk(edge_pts, edge_zs, v0, v1, v2, z0, z1, z2, w, h)
+                # j = tgec.edge_walk(edge_pts, edge_zs, v0, v1, v2, z0, z1, z2, w, h)
+                j = tgec.edge_walk()
 
                 edge_pts = edge_pts[0:j]
                 edge_zs = edge_zs[0:j]
