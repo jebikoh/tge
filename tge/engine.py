@@ -5,7 +5,8 @@ from .model import Model, apply_transform
 from .camera import Camera, Projection
 from .lights import DirectionalLight, PointLight, SpotLight
 from .util import Vec3
-
+from . import tgec
+import tgec
 import time
 
 ORIGIN = Vec3(0, 0, 0)
@@ -198,19 +199,10 @@ class GraphicsEngine:
                     continue
 
                 # Edge walking & scan conversion
-                edge_set = set()
                 edge_pts = np.zeros((self._mlen, 2), dtype=np.int64)
                 edge_zs = np.zeros(self._mlen, dtype=np.float64)
 
-                j = _bresenhams_line(
-                    v0, v1, z0, z1, w, h, edge_set, edge_pts, edge_zs, 0
-                )
-                j = _bresenhams_line(
-                    v1, v2, z1, z2, w, h, edge_set, edge_pts, edge_zs, j
-                )
-                j = _bresenhams_line(
-                    v2, v0, z2, z0, w, h, edge_set, edge_pts, edge_zs, j
-                )
+                j = tgec.edge_walk(edge_pts, edge_zs, v0, v1, v2, z0, z1, z2, w, h)
 
                 edge_pts = edge_pts[0:j]
                 edge_zs = edge_zs[0:j]
