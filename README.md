@@ -4,6 +4,14 @@ Set up with `poetry install` and active the environment with `poetry shell`.
 
 Build the docs with `mkdocs build` or serve it with `mkdocs serve`.
 
+## Sample
+
+Here is a sample of a spinning taurus. Run this via: `python -m tests.a_dir tests/models/taurus.obj`
+
+https://github.com/jebikoh/tge/assets/12992023/4f67c66f-7d0a-4bdf-a085-a18f921b332a
+
+
+
 ## To-Do
 -   Optimize scan conversion (slowest part)
 -   Add caching
@@ -17,8 +25,5 @@ Parameterized tests can be found in the `tests` directory and sample models in `
 
 Argument information can be found with:
  - `python -m tests.<test_name> -h`.
-
-An example test to run is:
- - `python -m tests.a_dir tests/models/taurus.obj`
 
 NOTE: The program will crash if the model is too large. Use the scale parameters to scale the models down.
