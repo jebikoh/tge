@@ -4,6 +4,8 @@ Set up with `poetry install` and active the environment with `poetry shell`.
 
 Build the docs with `mkdocs build` or serve it with `mkdocs serve`.
 
+I started working on a new version written in C: [JTX](https://github.com/jebikoh/jtx)
+
 ## Sample
 
 Here is a sample of a spinning taurus. Run this via: `python -m tests.a_dir tests/models/taurus.obj`
