@@ -34,6 +34,8 @@ class GraphicsEngine:
             + resolution[0]
             + resolution[1]
         )
+        self.buf = np.zeros((self.display.height, self.display.width))
+        self.zbuf = np.full((self.display.height, self.display.width), -np.inf)
 
     def add_model(self, model: Model) -> int:
         """Add a model to the scene
@@ -152,9 +154,8 @@ class GraphicsEngine:
             camera_id (int): ID of the camera to use for rendering
             proj_type (Projection, optional): Type of projection to use. Defaults to Projection.PERSPECTIVE.
         """
-        buf = np.zeros((self.display.height, self.display.width))
-        zbuf = np.full((self.display.height, self.display.width), -np.inf)
-        h, w = buf.shape
+        self._clear()
+        h, w = self.buf.shape
         camera = self.camera[camera_id]
         view_matrix = camera.get_view_matrix()
         proj_matrix = camera.get_proj_matrix(self.aspect_ratio, proj_type)
@@ -188,9 +189,9 @@ class GraphicsEngine:
 
                 # Skip this face if all vertices are obscured
                 if (
-                    z0 < zbuf[v0[1], v0[0]]
-                    and z1 < zbuf[v1[1], v1[0]]
-                    and z2 < zbuf[v2[1], v2[0]]
+                    z0 < self.zbuf[v0[1], v0[0]]
+                    and z1 < self.zbuf[v1[1], v1[0]]
+                    and z2 < self.zbuf[v2[1], v2[0]]
                 ):
                     continue
 
@@ -219,8 +220,8 @@ class GraphicsEngine:
                         intensity += light.compute_intensity(norms[i])
                     intensity /= len(self.directional_lights)
 
-                _fill_span(edge_pts, edge_zs, buf, zbuf, intensity)
-        self.display.update_buffer(buf, debug=True)
+                _fill_span(edge_pts, edge_zs, self.buf, self.zbuf, intensity)
+        self.display.update_buffer(self.buf, debug=True)
 
     def _ndc_to_screen(self, m: Model, inv_y: bool = False):
         """Converts a model with points in NDC to screen coordinates (in-place)
@@ -236,6 +237,10 @@ class GraphicsEngine:
             screen_v[:, 1] = self.display.height - screen_v[:, 1]
 
         m.v = screen_v
+
+    def _clear(self):
+        self.buf.fill(0)
+        self.zbuf.fill(-np.inf)
 
 
 def _bresenhams_line(
